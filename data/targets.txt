@@ -1,0 +1,55 @@
+Basin	Criteria	CriteriaID	Parameter	Parameter2	Target	Unit
+Kattegat	Causative factors	C1	DIN	DIN	5	µM
+Danish Straits	Causative factors	C1	DIN	DIN	4.6	µM
+Arkona Basin	Causative factors	C1	DIN	DIN	2.9	µM
+Bornholm Basin	Causative factors	C1	DIN	DIN	2.5	µM
+Baltic Proper	Causative factors	C1	DIN	DIN	2.5	µM
+Gulf of Riga	Causative factors	C1	DIN	DIN	5.2	µM
+Gulf of Finland	Causative factors	C1	DIN	DIN	3.8	µM
+Bothnian Sea	Causative factors	C1	DIN	DIN	2.8	µM
+Bothnian Bay	Causative factors	C1	DIN	DIN	5.2	µM
+Kattegat	Causative factors	C1	PO4	DIP	0.49	µM
+Danish Straits	Causative factors	C1	PO4	DIP	0.53	µM
+Arkona Basin	Causative factors	C1	PO4	DIP	0.36	µM
+Bornholm Basin	Causative factors	C1	PO4	DIP	0.3	µM
+Baltic Proper	Causative factors	C1	PO4	DIP	0.29	µM
+Gulf of Riga	Causative factors	C1	PO4	DIP	0.41	µM
+Gulf of Finland	Causative factors	C1	PO4	DIP	0.65	µM
+Bothnian Sea	Causative factors	C1	PO4	DIP	0.19	µM
+Bothnian Bay	Causative factors	C1	PO4	DIP	0.07	µM
+Kattegat	Direct effects	C2	Chla	CHL	1.5	µg/l
+Danish Straits	Direct effects	C2	Chla	CHL	1.6	µg/l
+Arkona Basin	Direct effects	C2	Chla	CHL	1.8	µg/l
+Bornholm Basin	Direct effects	C2	Chla	CHL	1.8	µg/l
+Baltic Proper	Direct effects	C2	Chla	CHL	1.6	µg/l
+Gulf of Riga	Direct effects	C2	Chla	CHL	2.7	µg/l
+Gulf of Finland	Direct effects	C2	Chla	CHL	2	µg/l
+Bothnian Sea	Direct effects	C2	Chla	CHL	1.5	µg/l
+Bothnian Bay	Direct effects	C2	Chla	CHL	2	µg/l
+Kattegat	Direct effects	C2	Secchi	SD 	7.6	m
+Danish Straits	Direct effects	C2	Secchi	SD 	8	m
+Arkona Basin	Direct effects	C2	Secchi	SD 	7.2	m
+Bornholm Basin	Direct effects	C2	Secchi	SD 	6.8	m
+Baltic Proper	Direct effects	C2	Secchi	SD 	7.7	m
+Gulf of Riga	Direct effects	C2	Secchi	SD 	5	m
+Gulf of Finland	Direct effects	C2	Secchi	SD 	5.5	m
+Bothnian Sea	Direct effects	C2	Secchi	SD 	6.8	m
+Bothnian Bay	Direct effects	C2	Secchi	SD 	5.8	m
+Kattegat	Indirect effects	C3	O2debt	OD		mg/l
+Danish Straits	Indirect effects	C3	O2debt	OD		mg/l
+Arkona Basin	Indirect effects	C3	O2debt	OD		mg/l
+Bornholm Basin	Indirect effects	C3	O2debt	OD	6.4	mg/l
+Baltic Proper	Indirect effects	C3	O2debt	OD	8.7	mg/l
+Gulf of Riga	Indirect effects	C3	O2debt	OD		mg/l
+Gulf of Finland	Indirect effects	C3	O2debt	OD	8.7	mg/l
+Bothnian Sea	Indirect effects	C3	O2debt	OD		mg/l
+Bothnian Bay	Indirect effects	C3	O2debt	OD		mg/l
+Kattegat	Indirect effects	C3	BI	BI	0.68	DKI
+Danish Straits	Indirect effects	C3	BI	BI	0.68	DKI
+Arkona Basin	Indirect effects	C3	BI	BI	0.68	DKI
+Bornholm Basin	Indirect effects	C3	BI	BI	7.2	DKI
+Baltic Proper	Indirect effects	C3	BI	BI	5.25	DKI
+Gulf of Riga	Indirect effects	C3	BI	BI		DKI
+Gulf of Finland	Indirect effects	C3	BI	BI	3.91	DKI
+Bothnian Sea	Indirect effects	C3	BI	BI	2.11	DKI
+Bothnian Bay	Indirect effects	C3	BI	BI	1.37	DKI
