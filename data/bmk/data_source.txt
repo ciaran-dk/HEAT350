@@ -1,0 +1,29 @@
+From: Barbel Muller-Karulis [mailto:barbel.muller.karulis@su.se] 
+Sent: 15. januar 2015 09:23
+To: jha@NIVA-Danmark.dk
+Cc: Ciarán Murray <cim@bios.au.dk>; Bo Gustafsson <bo.gustafsson@su.se>
+Subject: Re: BR manuscript
+
+Hi, 
+
+here is finally our model output :)
+
+I have started all runs with our long-term reconstruction for 1850 - 2006. This part is forced with observed loads and climate. Starting from 2007, the model is forced with a statistical representation of present climate and with loads according to 
+- PLC55 (constant loads as in PLC5.5 2007 - 2200)
+- BSAP (constant loads according to the new BSAP 2007-2200)
+- BSAP30years (30 year linear transition period where loads decrease from PLC55 to BSAP, afterwards constant BSAP loads)
+- BAU30years (load increase as in the Eccosupport BAU scenario with a 30 year transition period)
+
+Take a look and let me know if there are problems with the output files (and, of course, if you want to have other scenarios run, let us know) - otherwise, looking forward to your HEAT results ;)
+
+With respect to benthos, Karen Timmerman has actually used her model to reconstruct some of the benthos biomass in the Bornholm and Gotland basins for 1920 - 2006 based on the BALTSEM long-term hindcast. If you are seriously thinking about benthos, then we should talk to Karen.
+
+Cheers,
+
+Bärbel
+
+
+Bärbel Müller-Karulis
+Baltic Nest Institute
+Stockholm University
+barbel.muller.karulis@su.se
