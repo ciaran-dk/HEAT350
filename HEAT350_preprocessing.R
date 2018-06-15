@@ -53,7 +53,7 @@ for(i in 1:nrow(Scenarios)) {
     rm(list=c("dftemp","filename"))
     
     if(dfStns[j,"OD"]==1){
-      filename<-print(paste0("./bärbel/",Scenarios[i,"Scenario"],"/",dfStns[j,"StnID"],"_O2debt.txt"))
+      filename<-print(paste0("./data/bärbel/",Scenarios[i,"Scenario"],"/",dfStns[j,"StnID"],"_O2debt.txt"))
       print(filename)
       dftemp<-read.table(filename, header=TRUE,sep="\t", stringsAsFactors=FALSE)
       dftemp$Scenario<-Scenarios[i,"ScenarioID"]
@@ -109,5 +109,5 @@ df<-left_join(df,targets)
 
 df$Response<-ifelse(df$Parameter %in% c("Secchi"),"-","+")
 
-saveRDS(df, file="HEAT350.rds")
+saveRDS(df, file="data/HEAT350.rds")
 

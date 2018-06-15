@@ -15,14 +15,17 @@ library(dplyr)
 library(tidyr)
 library(sqldf)
 library(sas7bdat)
+library(zoo)
+library(ggplot2)
 
-AreaWeights<-TRUE
-#AreaWeights<-FALSE
+#Source the HEAT assessment calculation routine
+#source('HEAT.R')
+#AreaWeights<-TRUE
+AreaWeights<-FALSE
 
 
 # --------------- Get HEAT 100m years data - we are using the same target values --------------
-folder<-"C:/Data/GitHub/HEAT_100yrs/SAS apr2015/sas_data"
-
+folder<-"C:/Data/GitHub/HEAT350/data/100yrs/SAS data apr2015"
 files<-list.files(path=folder)
 filepaths<-paste0(folder,"/",files)
 
@@ -36,8 +39,7 @@ for(i in 1:length(files)){
 
 # --------------- import data file for 1850-2200 --------------
 
-source('HEAT.R')
-df <- readRDS("HEAT350.rds")
+df <- readRDS("data/HEAT350.rds")
 df$EUT_Ratio<-ifelse(df$Response=="+",df$Status/df$Target,df$Target/df$Status)
 
 # Create a data frame to match parameter names in 350 yr data to variable names in the target information
@@ -77,194 +79,213 @@ HEAT<-QE %>%
   summarise(EUT_Ratio=max(EUT_Ratio))
 
 # Add the ID of the Criteria with the worst score to the HEAT overall results
-HEAT<-left_join(HEAT,QE,by=c("Scenario"="Scenario","StnID"="StnID","Basin"="Basin","Year"="Year","EUT_Ratio"="EUT_Ratio"))
+HEAT<-left_join(HEAT,QE,by=c("Scenario","StnID","Basin","Year","EUT_Ratio"))
 
 # Transpose the QE resuts to give a column for each Quality Element (Criteria)
 QEspr<-spread_(data=QE, key_col="CriteriaID" , value_col = "EUT_Ratio")
 
 # Combine transposed QE results and overall HEAT results to give a table which has columns for each Criteria (QE) as well as the overall HEAT score,
 # also showing the name of the worst QE
-HEAT<-left_join(QEspr,HEAT,by=c("Scenario"="Scenario","StnID"="StnID","Basin"="Basin","Year"="Year"))
-
-# ----------- Get Basin areas -----------
-BasinInfo<-read.table(file="Basin_area.txt", header=TRUE,sep=",",stringsAsFactors=FALSE)
-BasinInfo$BASINID<-as.integer(BasinInfo$BASINID)
-BasinInfo$BASIN<-ifelse(BasinInfo$BASINID==2,"Danish Straits",BasinInfo$BASIN)
-BasinInfo$BASIN<-ifelse(BasinInfo$BASINID==9,"Bothnian Bay",BasinInfo$BASIN)
-BasinInfo$BASIN<-ifelse(BasinInfo$BASINID==8,"Bothnian Sea",BasinInfo$BASIN)
-#BasinInfo$BASIN<-ifelse(BasinInfo$BASIN=="Gulf of Bothnia" && BasinInfo$BASINID==5,"Bothnian Sea",BasinInfo$BASIN)
-BasinInfo$BASIN<-ifelse(BasinInfo$BASIN=="Gulf of Bothnia","Bothnian Sea",BasinInfo$BASIN)
-BasinInfo$BASIN<-ifelse(is.na(BasinInfo$BASINID),NA,BasinInfo$BASIN)
-
-Area<-BasinInfo %>%
-  filter(!is.na(BASINID)) %>%
-  group_by(BASIN) %>%
-  summarise(Area_km2=sum(AREA_KM2))
-
-# ----------- Calculate averages by Basis of variable absolute values and Eutrophication ratios (weighted by area and unweighted) -----------
-
-df2<-df %>%
-  filter(!is.na(EUT_Ratio)) %>%
-  select(Scenario,StnID,Basin,Year,CriteriaID,Variable,Unit,Response,Status,EUT_Ratio)
-HEAT2<-select(HEAT,Scenario,StnID,Basin,Year,EUT_Ratio)
-HEAT2$Variable<-"HEAT"
-HEAT2$Response<-NA
-HEAT2$CriteriaID<-NA
-HEAT2$Status<-HEAT2$EUT_Ratio
-HEAT2$Unit<-NA
-HEAT2<-ungroup(HEAT2)
-
-df2<-rbind(df2,HEAT2)
-
-df2<-left_join(df2,Area,by=c("Basin"="BASIN"))
-
-df2$Status_Wt<-df2$Status*df2$Area_km2
-df2$EUT_Ratio_Wt<-df2$EUT_Ratio*df2$Area_km2
+HEAT<-left_join(QEspr,HEAT,by=c("Scenario","StnID","Basin","Year"))
 
 
-df3<-df2 %>%
-  group_by(Scenario,Year,CriteriaID,Variable,Unit,Response) %>%
-  summarise(Status=mean(Status,rm.na=TRUE),
-            EUT_Ratio=mean(EUT_Ratio,rm.na=TRUE),
-            sum_Status_Wt=sum(Status_Wt,rm.na=TRUE),
-            sum_EUT_Ratio_Wt=sum(EUT_Ratio_Wt,rm.na=TRUE),
-            sum_Area_km2=sum(Area_km2,rm.na=TRUE)
-  )
+# --------------- import HEAT file for 1850-2200 --------------
+dfBasin <- readRDS("data/BioReviews.rds") %>% 
+  mutate(Basin=gsub("_"," ",Basin)) %>% 
+  select(-nYrs5) %>% 
+  rename(ER_obs=nYrs1)
 
-df3$Status_Wt<-df3$sum_Status_Wt/df3$sum_Area_km2
-df3$EUT_Ratio_Wt<-df3$sum_EUT_Ratio_Wt/df3$sum_Area_km2
-df3$sum_Status_Wt<-NULL
-df3$sum_EUT_Ratio_Wt<-NULL
-df3$sum_Area_km2<-NULL
+dfBasin <- HEAT %>% rename(HEAT=EUT_Ratio) %>% 
+  select(-CriteriaID) %>% 
+  gather(key="Parameter",value="ER",C1,C2,C3,HEAT) %>%
+  left_join(dfBasin,by=c("Basin","Parameter","Year")) %>%
+  ungroup()
+  
+basins<-c("Kattegat","Danish Straits","Arkona Basin","Bornholm Basin","Baltic Proper","Gulf of Riga","Gulf of Finland","Bothnian Sea","Bothnian Bay")
+dfBasin$Basin <- factor(dfBasin$Basin,levels=basins)
+
+maxER<-4
+dfBasin <- dfBasin %>% mutate(ER_obs=ifelse(ER_obs>4,maxER,ER_obs)) #%>% filter(Year>=1980)
+
+
+Parameter<-c("C1","C2","C3","HEAT")
+ParamLong<-c("C1 - Nutrients","C2 - Direct Effects","C3 - Indirect Effects","HEAT - Overall Status")
+dfparam<-data.frame(Parameter,ParamLong)
+
+
+models<-dfBasin %>%filter(!is.na(ER_obs),!is.na(ER)) %>%
+  group_by(Scenario,Basin,Parameter) %>% 
+  do(mod=lm(ER~ER_obs,data = .))
+
+for(i in 1:nrow(models)){
+  p<-anova(models$mod[[i]])[1,5]
+  models$p[i]<-p
+  r2<-summary(models$mod[[i]])[["adj.r.squared"]]
+  models$r2[i]<-r2
+}
+
+models <- models %>% arrange(Basin,Parameter,Scenario) %>% 
+  mutate(p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))),r2=(paste0("R2=",round(r2,2))),text=paste0(r2,"\n",p))
+
+dfBasin <- dfBasin %>% left_join(select(models,Scenario,Basin,Parameter,r2),by=c("Scenario","Basin","Parameter")) %>%
+  mutate(r2=ifelse(is.na(r2),"",r2)) %>%
+  mutate(ER_obs=ifelse(Parameter=="C3" & Basin %in% c("Kattegat","Danish Straits","Arkona Basin","Gulf of Riga","Bothnian Sea","Bothnian Bay"),
+                       NA,ER_obs))
+         
+ 
+
+scen<-"BSAP"
+#for(scen in c("BAU30","PLC55","BSAP","BSAP30")){
+  for(param in c("HEAT","C1","C2","C3")){
+    desc<-dfparam %>% filter(Parameter==param)
+    desc<-desc[1,2]
+    dfplot<-dfBasin %>% filter(Parameter==param,Scenario==scen) #%>% filter(!is.na(ER_obs)) 
+
+    p<-ggplot(dfplot) + facet_wrap(Basin~r2, nrow=2, ncol=5, scales="free") +#labeller = "label_parsed"
+      geom_point(aes(x=ER,y=ER_obs),shape=1)  + 
+      geom_smooth(aes(x=ER,y=ER_obs),method="lm",formula=y~x) +
+      labs(title=paste0(desc," [",scen,"]"),y=paste0("Observed"),x=paste0("Model")) +
+      theme_minimal()
+    
+      #labs(title=paste0(scen," ",param),y=paste0(param, " obs"),x=paste0(param, " model")) +
+      #+ coord_cartesian(xlim=c(0,2),ylim=c(0,2))+ geom_text(aes(label=text))
+    print(p)
+    
+    fig<-paste0("./figures/obs_vs_model_",scen,"_",param,".png")
+    figh<-15
+    figw<-25
+    ggsave(p,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+    
+  }
+#}
+
+
+models<-dfBasin %>%filter(!is.na(ER_obs),!is.na(ER)) %>%
+  group_by(Scenario,Basin,Parameter) %>% 
+  do(mod=lm(ER~ER_obs,data = .))
+
+for(i in 1:nrow(models)){
+  p<-anova(models$mod[[i]])[1,5]
+  models$p[i]<-p
+  r2<-summary(models$mod[[i]])[["adj.r.squared"]]
+  models$r2[i]<-r2
+}
+
+models <- models %>% ungroup() %>% 
+  filter(Scenario==scen) %>% select(-c(mod,p)) %>%
+  mutate(r2=round(r2,2)) %>%
+  spread(key="Parameter",value="r2")
+
+  
+# mod<-lm(ER~ER_obs,data =dfBasin)
+# sum<-summary(mod)
+# sum[["adj.r.squared"]]
+
+# for(i in 1:nrow(models)){
+#   p<-anova(models$mod[[i]])[1,5]
+#   models$p[i]<-p
+#   r2<-summary(models$mod[[i]])[["adj.r.squared"]]
+#   models$r2[i]<-r2
+# }
+
+
+#sum<-summary(models$mod[[1]])
 
 
 
 
+
+
+# ------- Baltic Averages---------------------------------
 nyears<-5
 transp<-0.1
 
-library(zoo)
+dfBaltic <- dfBasin %>% #
+  ungroup() %>% 
+  filter(Parameter=="HEAT") %>%
+  group_by(Scenario,Year) %>% 
+  summarise(ER=mean(ER,na.rm=T), ER_obs=mean(ER_obs,na.rm=T)) %>%
+  mutate(ER_obs=ifelse(is.nan(ER_obs),NA,ER_obs)) %>%
+  rename(obs=ER_obs,model=ER) 
 
-#df3<-arrange(df3,Scenario,CriteriaID,Variable,Unit,Response,Year)
-df4<-df3 %>% 
-  group_by(Scenario,CriteriaID,Variable,Unit,Response) %>%
-  mutate('Status_MA' = rollmean(Status, nyears, align="right", na.pad=TRUE ),
-         'EUT_Ratio_MA' = rollmean(EUT_Ratio, nyears, align="right", na.pad=TRUE ),
-         'Status_Wt_MA' = rollmean(Status_Wt, nyears, align="right", na.pad=TRUE ),
-         'EUT_Ratio_Wt_MA' = rollmean(EUT_Ratio_Wt, nyears, align="right", na.pad=TRUE )
-  )
+nmax<- nrow(distinct(ungroup(dfBaltic),Year))
+nscen<- nrow(distinct(ungroup(dfBaltic),Scenario))
+#nmax<-nrow(dfBaltic)
+for(s in 1:nscen){
+for(i in 1:nmax){
+  noffset<-(s-1)*nmax
+  nfrom<- i-2
+  nto<- i+2
+  nfrom<-ifelse(nfrom<1,1,nfrom)
+  nto<-ifelse(nto>nmax,nmax,nto)
+  nfrom=nfrom+noffset
+  nto=nto+noffset
+  dfBaltic$model_5yr[i+noffset] <- mean(dfBaltic$model[nfrom:nto],na.rm=T)
+  dfBaltic$obs_5yr[i+noffset] <- mean(dfBaltic$obs[nfrom:nto],na.rm=T)
+}}
 
-df5<-select(df4,Scenario,Year,CriteriaID,Variable,Unit,Response,Status,EUT_Ratio,Status_Wt,EUT_Ratio_Wt)
-df6<-select(df4,Scenario,Year,CriteriaID,Variable,Unit,Response,Status_MA,EUT_Ratio_MA,Status_Wt_MA,EUT_Ratio_Wt_MA)
-nshift<-floor((nyears-1)/2)
-df6$Year<-df6$Year-nshift
+dfBaltic<-dfBaltic %>% 
+  mutate(obs_5yr=ifelse(is.nan(obs_5yr),NA,obs_5yr),
+         model_5yr=ifelse(is.nan(model_5yr),NA,model_5yr)
+         )
 
-df7<-left_join(df5,df6,by=c("Scenario"="Scenario","Year"="Year","CriteriaID"="CriteriaID",
-                            "Variable"="Variable","Unit"="Unit","Response"="Response"))
+dfBaltic5<-dfBaltic %>% select(Scenario,Year,model=model_5yr,obs=obs_5yr) %>%
+  gather(key="Param",value="ER_5yr",obs,model)
+dfBaltic<-dfBaltic %>% select(Scenario,Year,model,obs) %>%
+  gather(key="Param",value="ER",obs,model) %>%
+  left_join(dfBaltic5,by=c("Scenario","Year","Param"))
 
-# ------------------------------ Plotting  ---------------------------------------------
-
-require(ggplot2)
-Scenarios<-c("BAU30","PLC55","BSAP","BSAP30")
-Variables<-c("O2debt","chl_summer","secchi_summer","din_winter","dip_winter","HEAT")
-Units<-c("[mg/l]","[µg/l]","[m]","[µM]","[µM]","")
-
-plotdata<-df7 %>%
-  filter(Scenario=="BSAP")
-plotdata<-ungroup(plotdata)
-
-plotdata$Variable<-ifelse(is.na(plotdata$Unit),plotdata$Variable, paste0(plotdata$Variable, " [", plotdata$Unit,"]"))
-plotdata$Variable<-factor(plotdata$Variable,levels=c("din_winter [µM]","dip_winter [µM]","chl_summer [µg/l]","secchi_summer [m]","O2debt [mg/l]","HEAT"))
-
-#plotdata$Variable<-factor(plotdata$Variable,levels=c("din_winter","dip_winter","chl_summer","secchi_summer","O2debt","HEAT"))
-p<-ggplot(data=plotdata) + geom_point(aes(Year,Status),colour="#999999") + geom_line(aes(Year,Status_MA),size=1)  + facet_grid(Variable ~ ., scales="free_y")
-p<-p+ xlab("Year") + ylab("") + ggtitle("HEAT Baltic Sea")
-p
-
-plotfile<-"./figures/BALTIC_HEAT.png"
-ggsave(plotfile,p,dpi=600,width=15,height=20,units ="cm")
-
-
-
-
-
-# ------------------------------ Plotting using function ---------------------------------------------
-
-plotout<-function(df,SelectScen,SelectVar,Weighted=FALSE,Ratio=FALSE,Units=""){
-  
-  plotdata<-df %>%
-    filter(Scenario==SelectScen,Variable==SelectVar)
-
-  xlabel<-expression(paste("Year",sep=""))
-  title<-expression(paste("Eutrophication Ratio (Baltic)",sep=""))
-  ylabel<-SelectVar
-                 
-  p<-ggplot(data = plotdata)
-  if(Weighted==TRUE){
-    if(Ratio==TRUE){
-      p<-p + geom_point(aes(Year,EUT_Ratio_Wt),colour="#999999") + geom_line(aes(Year,EUT_Ratio_Wt_MA),size=1) 
-      plotfile<-paste0("./figures/",SelectScen,"_",SelectVar,"_ratio_wt.png")
-      ylabel<-paste0(SelectVar, " (EUT Ratio)")
-   }else{
-      p<-p + geom_point(aes(Year,Status_Wt),colour="#999999") + geom_line(aes(Year,Status_Wt_MA),size=1) 
-      plotfile<-paste0("./figures/",SelectScen,"_",SelectVar,"_value_wt.png")
-      ylabel<-paste0(SelectVar, " ", Units)
-   }
-  }else{
-    if(Ratio==TRUE){
-      p<-p + geom_point(aes(Year,EUT_Ratio),colour="#999999") + geom_line(aes(Year,EUT_Ratio_MA),size=1) 
-      plotfile<-paste0("./figures/",SelectScen,"_",SelectVar,"_ratio.png")
-      ylabel<-paste0(SelectVar, " (EUT Ratio)")
-    }else{
-      p<-p + geom_point(aes(Year,Status),colour="#999999") + geom_line(aes(Year,Status_MA),size=1) 
-      plotfile<-paste0("./figures/",SelectScen,"_",SelectVar,"_value.png")
-      ylabel<-paste0(SelectVar, " ", Units)
-    }
-  }
-  p<-p + xlab(xlabel) + ylab(ylabel) #+ ggtitle(title)
-  #p 
-  ggsave(plotfile,p,dpi=600,width=15,height=6,units ="cm")
-  
-}
-
-#
-
-# --- plotting heat by basin ----------------------------------------------------------------------
-library(ggplot2)
-library(zoo)
-
-StnID <- c("KA","DS","AR","BN","GR","GF","BS","BB","GS")
-StnName <- c("Kattegat","Danish Straits","Arkona Basin","Bornholm Basin",
-            "Gulf of Riga","Gulf of Finland","Bothnian Sea","Bothnian Bay","Baltic Proper")
-
-nyears<-5
-df11<-HEAT %>% select(Scenario,StnID,Basin,Year,EUT_Ratio) %>%
-  group_by(Scenario,StnID,Basin) %>%
-  mutate('EUT_Ratio_MA' = rollmean(EUT_Ratio, nyears, align="right", na.pad=TRUE ))
-
-df12<-select(df11,Scenario,StnID,Basin,Year,EUT_Ratio)
-df13<-select(df11,Scenario,StnID,Basin,Year,EUT_Ratio_MA)
-nshift<-floor((nyears-1)/2)
-df13$Year<-df13$Year-nshift
-
-df14<-left_join(df12,df13,by=c("Scenario"="Scenario","Year"="Year","StnID"="StnID","Basin"="Basin"))
+dfplot<-dfBaltic %>% filter(Scenario==scen, Year %in% c(1900:2020))
+p1<-ggplot(dfplot) + 
+  theme_minimal() +
+  geom_point(aes(x=Year,y=ER,colour=Param),shape=1)  + 
+  geom_line(aes(x=Year,y=ER_5yr,colour=Param)) +
+  coord_cartesian(ylim=c(0,2.5))  +
+  geom_hline(yintercept=1,linetype=3,colour="#000000",size=1)
+p1
 
 
+dfplot<-dfBaltic %>% filter(Param=="model")
+p2<-ggplot(dfplot) + 
+  theme_minimal() +
+  geom_point(aes(x=Year,y=ER,colour=Scenario),shape=1)  + 
+  geom_line(aes(x=Year,y=ER_5yr,colour=Scenario)) +
+  coord_cartesian(ylim=c(0,2.5)) +
+  geom_hline(yintercept=1,linetype=3,colour="#000000",size=1)
+p2
 
-for(i in 1:length(StnID)){
-  plotdata<-df14 %>%
-    filter(Scenario=="BSAP",Basin==StnName[i]) %>%
-    ungroup()
-  p<-ggplot(data = plotdata)
-  p<-p + geom_point(aes(Year,EUT_Ratio),colour="#999999") + geom_line(aes(Year,EUT_Ratio_MA),size=1) 
-  p<-p + xlab("Year") + ylab("EUT Ratio") + ggtitle(StnName[i])
-  p<-p + geom_hline(yintercept = 1,linetype=2, colour="red")
-  p<-p + coord_cartesian(ylim=c(0.5,1.9)) + theme_minimal(base_size=11)
-  plotfile<-paste0("./figures/basins/EUT_",StnName[i],".png")
-  ggsave(plotfile,p,dpi=100,width=9,height=5,units ="cm")  
-  
-}
- p 
-  p
-  
+figh<-15
+figw<-25
+fig<-paste0("./figures/obs_vs_model_Baltic.png")
+ggsave(p1,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+fig<-paste0("./figures/Scenarios_Baltic.png")
+ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
 
+#----------- Check target values ---------------------------------------
+
+Variable<-c("chl_summer","din_winter","dip_winter","O2debt","secchi_summer")
+Parameter<-c("Chla","DIN","PO4","O2debt","Secchi")
+dfvar<-data.frame(Variable,Parameter,stringsAsFactors = F)
+
+# distinct target values (model)
+targets_model <- df %>% filter(Year==2200) %>%
+  distinct(Parameter,Basin,StnID,Target,Unit,Response) %>%
+  arrange(Parameter,Basin,StnID)
+
+# check that there are not duplicate thresholds
+testcount <-targets_model %>% group_by(Parameter,Basin) %>%
+  summarise(n=n()) %>% 
+  filter(n>1)
+
+# distinct target values (model)
+targets_obs <- targets.sas7bdat %>% filter(Year==2011) %>%
+  distinct(Variable,Basin,Value,Weight) %>%
+  arrange(Variable,Basin)
+
+targets_obs <- targets_obs %>%
+  left_join(dfvar,by="Variable") %>%
+  mutate(Basin=gsub("_"," ",Basin)) %>%
+  select(Basin,Parameter,Value,Weight)
+
+targets_model <- targets_model %>%
+  left_join(targets_obs,by=c("Basin","Parameter"))
