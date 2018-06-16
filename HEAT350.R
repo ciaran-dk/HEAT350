@@ -145,7 +145,10 @@ for(scen in c("BSAP")){
       desc<-dfparam %>% filter(Parameter==param)
     desc<-desc[1,2]
     
-    dfplot<-dfBasin %>% filter(Parameter==param,Scenario==scen) #%>% filter(!is.na(ER_obs)) 
+    dfplot<-dfBasin %>% filter(Parameter==param,Scenario==scen) %>%
+      mutate(label=paste0(Basin,"~(",r2,")"))
+    order <- dfplot %>% group_by(Basin,label) %>% summarise() %>% arrange(Basin)
+    dfplot$label<-factor(dfplot$label, levels=order$label)
     
     if(param=="C3"){
       dfplot<-dfplot %>% filter(Basin %in% basins3)
@@ -156,13 +159,17 @@ for(scen in c("BSAP")){
       figw<-24
       }
     
-    p<-ggplot(dfplot) + facet_wrap(Basin~r2, nrow=2, ncol=5, scales="free",labeller = label_parsed) +#(dfplot,multi_line=FALSE))
-      geom_point(aes(x=ER,y=ER_obs),shape=1)  + #
-      geom_smooth(aes(x=ER,y=ER_obs),method="lm",formula=y~x) +
-      labs(title=paste0(desc," [",scen,"]"),y="ER(Observed)",x="ER(Model)") +
+    p<-ggplot(dfplot) + facet_wrap(~label, nrow=2, ncol=5, scales="free",labeller = label_parsed) +
+      geom_point(aes(x=ER_obs,y=ER),shape=1)  + 
+      geom_smooth(aes(x=ER_obs,y=ER),method="lm",formula=y~x) +
+      labs(title=paste0(desc," [",scen,"]"),
+           subtitle="Observations vs. BALTSEM",
+           y="Eutrophication Ratio (Model)",
+           x="Eutrophication Ratio (Observed)") +
       theme_minimal() + theme(strip.text.x = element_text(size=8)) +
-      scale_color_brewer(palette="Set1")
-    
+      scale_color_brewer(palette="Set1") +
+      coord_cartesian(xlim=c(0,4),ylim=c(0,3))
+
     print(p)
     
     fig<-paste0("./figures/obs_vs_model_",scen,"_",param,".png")
@@ -190,24 +197,6 @@ models <- models %>% ungroup() %>%
   filter(Scenario==scen) %>% select(-c(mod,p)) %>%
   mutate(r2=round(r2,2)) %>%
   spread(key="Parameter",value="r2")
-
-  
-# mod<-lm(ER~ER_obs,data =dfBasin)
-# sum<-summary(mod)
-# sum[["adj.r.squared"]]
-
-# for(i in 1:nrow(models)){
-#   p<-anova(models$mod[[i]])[1,5]
-#   models$p[i]<-p
-#   r2<-summary(models$mod[[i]])[["adj.r.squared"]]
-#   models$r2[i]<-r2
-# }
-
-
-#sum<-summary(models$mod[[1]])
-
-
-
 
 
 
@@ -261,7 +250,9 @@ p1<-ggplot(dfplot) +
   geom_line(aes(x=Year,y=ER_5yr,colour=Param)) +
   geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
   coord_cartesian(ylim=c(0,2.5))  +
-  scale_color_brewer(palette="Set1")
+  scale_color_brewer(palette="Set1",name="HEAT") + 
+  labs(y="Eutrophication Ratio", 
+       title="HEAT Baltic",subtitle="Observations vs. BALTSEM")
 p1
 
 
@@ -272,41 +263,93 @@ p2<-ggplot(dfplot) +
   geom_line(aes(x=Year,y=ER_5yr,colour=Scenario)) +
   geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
   coord_cartesian(ylim=c(0,2.5)) +
-  scale_color_brewer(palette="Set1")
+  scale_color_brewer(palette="Set1") + 
+  labs(y="Eutrophication Ratio", 
+       title="HEAT Baltic",subtitle="BALTSEM Scenarios")
 p2
 
 figh<-12
 figw<-24
 fig<-paste0("./figures/obs_vs_model_Baltic.png")
-#ggsave(p1,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+ggsave(p1,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
 fig<-paste0("./figures/Scenarios_Baltic.png")
-#ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
 
-#----------- Check target values ---------------------------------------
 
-Variable<-c("chl_summer","din_winter","dip_winter","O2debt","secchi_summer")
-Parameter<-c("Chla","DIN","PO4","O2debt","Secchi")
-dfvar<-data.frame(Variable,Parameter,stringsAsFactors = F)
+# ---------- plot scenario results for basins --------------------------
 
-# distinct target values (model)
-targets_model <- df %>% filter(Year==2200) %>%
-  distinct(Parameter,Basin,StnID,Target,Unit,Response) %>%
-  arrange(Parameter,Basin,StnID)
+dfPlotBasin<- dfBasin %>% 
+  filter(Parameter=="HEAT") %>%
+  select(-c(ER_obs,r2)) %>%
+  mutate(ER_5yr=ER,ER_10yr=ER)
+  
 
-# check that there are not duplicate thresholds
-testcount <-targets_model %>% group_by(Parameter,Basin) %>%
-  summarise(n=n()) %>% 
-  filter(n>1)
+nmax<- nrow(distinct(ungroup(dfPlotBasin),Year))
+nbasin<- nrow(distinct(ungroup(dfPlotBasin),Basin))
+nscen<- nrow(distinct(ungroup(dfPlotBasin),Scenario))
 
-# distinct target values (model)
-targets_obs <- targets.sas7bdat %>% filter(Year==2011) %>%
-  distinct(Variable,Basin,Value,Weight) %>%
-  arrange(Variable,Basin)
+#nmax<-nrow(dfBaltic)
+for(s in 1:nscen){
+  for(b in 1:nbasin){
+    for(i in 1:nmax){
+      noffset<-(s-1)*9*nmax+(b-1)*nmax
+    nfrom<- i-2
+    nto<- i+2
+    nfrom<-ifelse(nfrom<1,1,nfrom)
+    nto<-ifelse(nto>nmax,nmax,nto)
+    nfrom=nfrom+noffset
+    nto=nto+noffset
+    dfPlotBasin$ER_5yr[i+noffset] <- mean(dfPlotBasin$ER[nfrom:nto],na.rm=T)
+    }}}
 
-targets_obs <- targets_obs %>%
-  left_join(dfvar,by="Variable") %>%
-  mutate(Basin=gsub("_"," ",Basin)) %>%
-  select(Basin,Parameter,Value,Weight)
+for(s in 1:nscen){
+  for(b in 1:nbasin){
+    for(i in 1:nmax){
+      noffset<-(s-1)*9*nmax+(b-1)*nmax
+      nfrom<- i-4
+    nto<- i+5
+    nfrom<-ifelse(nfrom<1,1,nfrom)
+    nto<-ifelse(nto>nmax,nmax,nto)
+    nfrom=nfrom+noffset
+    nto=nto+noffset
+    dfPlotBasin$ER_10yr[i+noffset] <- mean(dfPlotBasin$ER[nfrom:nto],na.rm=T)
+  }}}
 
-targets_model <- targets_model %>%
-  left_join(targets_obs,by=c("Basin","Parameter"))
+p3<-ggplot(dfPlotBasin) + 
+  theme_minimal() + facet_wrap(~Basin, nrow=2, ncol=5, scales="free",labeller = label_parsed) +
+  #geom_point(aes(x=Year,y=ER,colour=Scenario),shape=1, alpha=0.1)  + 
+  geom_line(aes(x=Year,y=ER,colour=Scenario, alpha=0.1),show_guide = FALSE) +
+  geom_line(aes(x=Year,y=ER_10yr,colour=Scenario)) +
+  geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
+  coord_cartesian(ylim=c(0,2.5)) +
+  scale_color_brewer(palette="Set1") + 
+  labs(y="Eutrophication Ratio", 
+       title="HEAT Baltic Basins",subtitle="BALTSEM Scenarios")
+p3
+
+figh<-12
+figw<-24
+fig<-paste0("./figures/Scenarios_basins.png")
+ggsave(p3,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+
+for(b in basins2){
+  btitle<-paste0("HEAT ",basins[basins2==b])
+  dfplot<-dfPlotBasin %>% filter(Basin == b)
+  p4<-ggplot(dfplot) + 
+  theme_minimal() +
+  geom_point(aes(x=Year,y=ER,colour=Scenario, alpha=0.1),shape=1,show_guide=F)  + 
+  geom_line(aes(x=Year,y=ER_10yr,colour=Scenario)) +
+  geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
+  coord_cartesian(ylim=c(0,2.5)) +
+  scale_color_brewer(palette="Set1") + 
+  labs(y="Eutrophication Ratio", 
+       title=btitle,subtitle="BALTSEM Scenarios")
+print(p4)
+
+figh<-12
+figw<-24
+fig<-paste0("./figures/Scenarios_basin_",b,".png")
+ggsave(p4,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+}
+
+

@@ -1,5 +1,69 @@
 
 
+for(i in 1:3){
+  n1<-1+4*(i-1)
+  n2<-4*i
+  
+  n2<-ifelse(n2>9,9,n2)
+  bselect<-basins2[n1:n2]
+  dfplot<-dfPlotBasin %>% filter(Basin %in% bselect)
+  
+  p4<-ggplot(dfplot) + 
+    theme_minimal() + facet_wrap(~Basin, nrow=3, ncol=2, scales="free",labeller = label_parsed) +
+    #geom_point(aes(x=Year,y=ER,colour=Scenario),shape=1, alpha=0.1)  + 
+    geom_line(aes(x=Year,y=ER,colour=Scenario, alpha=0.1),show_guide = FALSE) +
+    geom_line(aes(x=Year,y=ER_5yr,colour=Scenario)) +
+    geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
+    coord_cartesian(ylim=c(0,2.5)) +
+    scale_color_brewer(palette="Set1") + 
+    labs(y="Eutrophication Ratio", 
+         title="HEAT Baltic Basins")
+  print(p4)
+  
+  if(length(bselect)<2){
+    figh<-6.6
+    figw<-13.6
+  }else{
+    figh<-12
+    figw<-24
+  }
+  
+  fig<-paste0("./figures/Scenarios_basins_",i,".png")
+  ggsave(p4,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+  
+}
+
+
+
+#----------- Check target values ---------------------------------------
+
+Variable<-c("chl_summer","din_winter","dip_winter","O2debt","secchi_summer")
+Parameter<-c("Chla","DIN","PO4","O2debt","Secchi")
+dfvar<-data.frame(Variable,Parameter,stringsAsFactors = F)
+
+# distinct target values (model)
+targets_model <- df %>% filter(Year==2200) %>%
+  distinct(Parameter,Basin,StnID,Target,Unit,Response) %>%
+  arrange(Parameter,Basin,StnID)
+
+# check that there are not duplicate thresholds
+testcount <-targets_model %>% group_by(Parameter,Basin) %>%
+  summarise(n=n()) %>% 
+  filter(n>1)
+
+# distinct target values (model)
+targets_obs <- targets.sas7bdat %>% filter(Year==2011) %>%
+  distinct(Variable,Basin,Value,Weight) %>%
+  arrange(Variable,Basin)
+
+targets_obs <- targets_obs %>%
+  left_join(dfvar,by="Variable") %>%
+  mutate(Basin=gsub("_"," ",Basin)) %>%
+  select(Basin,Parameter,Value,Weight)
+
+targets_model <- targets_model %>%
+  left_join(targets_obs,by=c("Basin","Parameter"))
+# ----------------------------------------------------
 
 
 my_label_parsed <- function (variable, value) {
