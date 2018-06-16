@@ -17,6 +17,8 @@ library(sqldf)
 library(sas7bdat)
 library(zoo)
 library(ggplot2)
+library(wesanderson)
+library(RColorBrewer)
 
 #Source the HEAT assessment calculation routine
 #source('HEAT.R')
@@ -102,7 +104,9 @@ dfBasin <- HEAT %>% rename(HEAT=EUT_Ratio) %>%
   ungroup()
   
 basins<-c("Kattegat","Danish Straits","Arkona Basin","Bornholm Basin","Baltic Proper","Gulf of Riga","Gulf of Finland","Bothnian Sea","Bothnian Bay")
-dfBasin$Basin <- factor(dfBasin$Basin,levels=basins)
+basins3<-c("Bornholm~Basin","Baltic~Proper","Gulf~of~Finland")
+basins2<-gsub(" ","~",basins)
+dfBasin$Basin <- factor(dfBasin$Basin,levels=basins,labels=basins2) #,labels=gsub("_"," ",basins))
 
 maxER<-4
 dfBasin <- dfBasin %>% mutate(ER_obs=ifelse(ER_obs>4,maxER,ER_obs)) #%>% filter(Year>=1980)
@@ -125,40 +129,51 @@ for(i in 1:nrow(models)){
 }
 
 models <- models %>% arrange(Basin,Parameter,Scenario) %>% 
-  mutate(p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))),r2=(paste0("R2=",round(r2,2))),text=paste0(r2,"\n",p))
+  mutate(p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))),r2=(paste0("R^2*'='~'",round(r2,2),"'")),text=paste0(r2,"\n",p))
 
 dfBasin <- dfBasin %>% left_join(select(models,Scenario,Basin,Parameter,r2),by=c("Scenario","Basin","Parameter")) %>%
   mutate(r2=ifelse(is.na(r2),"",r2)) %>%
   mutate(ER_obs=ifelse(Parameter=="C3" & Basin %in% c("Kattegat","Danish Straits","Arkona Basin","Gulf of Riga","Bothnian Sea","Bothnian Bay"),
                        NA,ER_obs))
          
- 
 
-scen<-"BSAP"
+
 #for(scen in c("BAU30","PLC55","BSAP","BSAP30")){
-  for(param in c("HEAT","C1","C2","C3")){
-    desc<-dfparam %>% filter(Parameter==param)
+for(scen in c("BSAP")){
+  #for(param in c("HEAT","C1","C2","C3")){
+  for(param in c("HEAT")){
+      desc<-dfparam %>% filter(Parameter==param)
     desc<-desc[1,2]
-    dfplot<-dfBasin %>% filter(Parameter==param,Scenario==scen) #%>% filter(!is.na(ER_obs)) 
-
-    p<-ggplot(dfplot) + facet_wrap(Basin~r2, nrow=2, ncol=5, scales="free") +#labeller = "label_parsed"
-      geom_point(aes(x=ER,y=ER_obs),shape=1)  + 
-      geom_smooth(aes(x=ER,y=ER_obs),method="lm",formula=y~x) +
-      labs(title=paste0(desc," [",scen,"]"),y=paste0("Observed"),x=paste0("Model")) +
-      theme_minimal()
     
-      #labs(title=paste0(scen," ",param),y=paste0(param, " obs"),x=paste0(param, " model")) +
-      #+ coord_cartesian(xlim=c(0,2),ylim=c(0,2))+ geom_text(aes(label=text))
+    dfplot<-dfBasin %>% filter(Parameter==param,Scenario==scen) #%>% filter(!is.na(ER_obs)) 
+    
+    if(param=="C3"){
+      dfplot<-dfplot %>% filter(Basin %in% basins3)
+      figh<-7
+      figw<-15
+      }else{
+      figh<-12
+      figw<-24
+      }
+    
+    p<-ggplot(dfplot) + facet_wrap(Basin~r2, nrow=2, ncol=5, scales="free",labeller = label_parsed) +#(dfplot,multi_line=FALSE))
+      geom_point(aes(x=ER,y=ER_obs),shape=1)  + #
+      geom_smooth(aes(x=ER,y=ER_obs),method="lm",formula=y~x) +
+      labs(title=paste0(desc," [",scen,"]"),y="ER(Observed)",x="ER(Model)") +
+      theme_minimal() + theme(strip.text.x = element_text(size=8)) +
+      scale_color_brewer(palette="Set1")
+    
     print(p)
     
     fig<-paste0("./figures/obs_vs_model_",scen,"_",param,".png")
-    figh<-15
-    figw<-25
     ggsave(p,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
     
   }
-#}
+}
+scen<-"BSAP"
+param<-"HEAT"
 
+# ------------------ end ------------------------
 
 models<-dfBasin %>%filter(!is.na(ER_obs),!is.na(ER)) %>%
   group_by(Scenario,Basin,Parameter) %>% 
@@ -220,8 +235,12 @@ for(i in 1:nmax){
   nto<-ifelse(nto>nmax,nmax,nto)
   nfrom=nfrom+noffset
   nto=nto+noffset
-  dfBaltic$model_5yr[i+noffset] <- mean(dfBaltic$model[nfrom:nto],na.rm=T)
-  dfBaltic$obs_5yr[i+noffset] <- mean(dfBaltic$obs[nfrom:nto],na.rm=T)
+  if(sum(is.na(dfBaltic$model[nfrom:nto]))<3){
+    dfBaltic$model_5yr[i+noffset] <- mean(dfBaltic$model[nfrom:nto],na.rm=T)
+  }else{dfBaltic$model_5yr[i+noffset] <- NA}
+  if(sum(is.na(dfBaltic$obs[nfrom:nto]))<3){
+    dfBaltic$obs_5yr[i+noffset] <- mean(dfBaltic$obs[nfrom:nto],na.rm=T)
+  }else{dfBaltic$obs_5yr[i+noffset] <- NA}
 }}
 
 dfBaltic<-dfBaltic %>% 
@@ -240,8 +259,9 @@ p1<-ggplot(dfplot) +
   theme_minimal() +
   geom_point(aes(x=Year,y=ER,colour=Param),shape=1)  + 
   geom_line(aes(x=Year,y=ER_5yr,colour=Param)) +
+  geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
   coord_cartesian(ylim=c(0,2.5))  +
-  geom_hline(yintercept=1,linetype=3,colour="#000000",size=1)
+  scale_color_brewer(palette="Set1")
 p1
 
 
@@ -250,16 +270,17 @@ p2<-ggplot(dfplot) +
   theme_minimal() +
   geom_point(aes(x=Year,y=ER,colour=Scenario),shape=1)  + 
   geom_line(aes(x=Year,y=ER_5yr,colour=Scenario)) +
+  geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
   coord_cartesian(ylim=c(0,2.5)) +
-  geom_hline(yintercept=1,linetype=3,colour="#000000",size=1)
+  scale_color_brewer(palette="Set1")
 p2
 
-figh<-15
-figw<-25
+figh<-12
+figw<-24
 fig<-paste0("./figures/obs_vs_model_Baltic.png")
-ggsave(p1,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+#ggsave(p1,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
 fig<-paste0("./figures/Scenarios_Baltic.png")
-ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+#ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
 
 #----------- Check target values ---------------------------------------
 

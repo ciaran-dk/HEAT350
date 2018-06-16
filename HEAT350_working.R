@@ -2,6 +2,13 @@
 
 
 
+my_label_parsed <- function (variable, value) {
+  if (variable == "r2") {
+    llply(as.character(value), function(x) parse(text = x))    
+  } else {
+    return(as.character(value))
+  }
+}
 
 
 

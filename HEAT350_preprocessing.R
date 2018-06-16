@@ -25,8 +25,8 @@ dfStns = data.frame(StnID,StnName,OD, stringsAsFactors = FALSE)
 dfStns[,"StnID"] <- factor(dfStns[,"StnID"], levels = StnID)
 
 
-Scenario<-c("nhiresaffBAU30years_2","nhiresaffBSAP_2",
-            "nhiresaffBSAP30years_2","nhiresaffPLC55_2")
+Scenario<-c("nhiresaffBAU30years_2","nhiresaffPLC55_2",
+            "nhiresaffBSAP_2","nhiresaffBSAP30years_2")
 ScenarioID<-c("BAU30","PLC55","BSAP","BSAP30")
 Scenarios<-data.frame(ScenarioID,Scenario,stringsAsFactors = FALSE)
 Scenarios[,"ScenarioID"] <- factor(Scenarios[,"ScenarioID"], levels = ScenarioID)
