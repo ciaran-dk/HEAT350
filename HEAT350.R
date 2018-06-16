@@ -162,8 +162,8 @@ for(scen in c("BSAP")){
     p<-ggplot(dfplot) + facet_wrap(~label, nrow=2, ncol=5, scales="free",labeller = label_parsed) +
       geom_point(aes(x=ER_obs,y=ER),shape=1)  + 
       geom_smooth(aes(x=ER_obs,y=ER),method="lm",formula=y~x) +
-      labs(title=paste0(desc," [",scen,"]"),
-           subtitle="Observations vs. BALTSEM",
+      labs(title=desc,
+           subtitle=paste0("Observations vs. BALTSEM"," [",scen,"]"),
            y="Eutrophication Ratio (Model)",
            x="Eutrophication Ratio (Observed)") +
       theme_minimal() + theme(strip.text.x = element_text(size=8)) +
