@@ -10,7 +10,6 @@
 # BB - Bothnian Bay
 
 rm(list=ls())
-bPrint<-F
 
 library(dplyr)
 library(tidyr)
@@ -18,13 +17,14 @@ library(sqldf)
 library(sas7bdat)
 library(zoo)
 library(ggplot2)
-library(wesanderson)
 library(RColorBrewer)
+#library(wesanderson)
 
 #Source the HEAT assessment calculation routine
 #source('HEAT.R')
 #AreaWeights<-TRUE
 AreaWeights<-FALSE
+bPrint<-F
 
 
 # --------------- Get HEAT 100m years data - we are using the same target values --------------
@@ -92,7 +92,7 @@ QEspr<-spread_(data=QE, key_col="CriteriaID" , value_col = "EUT_Ratio")
 HEAT<-left_join(QEspr,HEAT,by=c("Scenario","StnID","Basin","Year"))
 
 
-# --------------- import HEAT file for 1850-2200 --------------
+# --------------- import HEAT file for observations --------------
 dfBasin <- readRDS("data/BioReviews.rds") %>% 
   mutate(Basin=gsub("_"," ",Basin)) %>% 
   select(-nYrs5) %>% 
@@ -139,7 +139,7 @@ dfBasin <- dfBasin %>% left_join(select(models,Scenario,Basin,Parameter,r2),by=c
          
 
 
-#for(scen in c("BAU30","PLC55","BSAP","BSAP30")){
+#for(scen in c("BAU30","PLC55","BSAP30","BSAP")){
 for(scen in c("BSAP")){
   #for(param in c("HEAT","C1","C2","C3")){
   for(param in c("HEAT")){
@@ -160,9 +160,10 @@ for(scen in c("BSAP")){
       figw<-24
       }
     
-    p<-ggplot(dfplot) + facet_wrap(~label, nrow=2, ncol=5, scales="free",labeller = label_parsed) +
-      geom_point(aes(x=ER_obs,y=ER),shape=1)  + 
-      geom_smooth(aes(x=ER_obs,y=ER),method="lm",formula=y~x) +
+    p<-ggplot(dfplot,aes(x=ER_obs,y=ER)) + facet_wrap(~label, nrow=2, ncol=5, scales="free",labeller = label_parsed) +
+      geom_point(shape=1,colour="#000000", alpha=0.6)  + 
+      geom_ribbon(stat='smooth', method = "lm", se=TRUE, alpha=0.1,fill="#0000ff") +
+      geom_line(stat='smooth',method="lm",alpha=0.6,formula=y~x,colour="#0000ff") +
       labs(title=desc,
            subtitle=paste0("Observations vs. BALTSEM"," [",scen,"]"),
            y="Eutrophication Ratio (Model)",
@@ -294,27 +295,34 @@ for(s in 1:nscen){
   for(b in 1:nbasin){
     for(i in 1:nmax){
       noffset<-(s-1)*9*nmax+(b-1)*nmax
-    nfrom<- i-2
-    nto<- i+2
-    nfrom<-ifelse(nfrom<1,1,nfrom)
-    nto<-ifelse(nto>nmax,nmax,nto)
-    nfrom=nfrom+noffset
-    nto=nto+noffset
-    dfPlotBasin$ER_5yr[i+noffset] <- mean(dfPlotBasin$ER[nfrom:nto],na.rm=T)
-    }}}
+      
+      # 5yr avg
+      nfrom<- i-2
+      nto<- i+2
+      nfrom<-ifelse(nfrom<1,1,nfrom)
+      nto<-ifelse(nto>nmax,nmax,nto)
+      nfrom=nfrom+noffset
+      nto=nto+noffset
+      dfPlotBasin$ER_5yr[i+noffset] <- mean(dfPlotBasin$ER[nfrom:nto],na.rm=T)
 
-for(s in 1:nscen){
-  for(b in 1:nbasin){
-    for(i in 1:nmax){
-      noffset<-(s-1)*9*nmax+(b-1)*nmax
+      #10 yr avg
       nfrom<- i-4
-    nto<- i+5
-    nfrom<-ifelse(nfrom<1,1,nfrom)
-    nto<-ifelse(nto>nmax,nmax,nto)
-    nfrom=nfrom+noffset
-    nto=nto+noffset
-    dfPlotBasin$ER_10yr[i+noffset] <- mean(dfPlotBasin$ER[nfrom:nto],na.rm=T)
-  }}}
+      nto<- i+5
+      nfrom<-ifelse(nfrom<1,1,nfrom)
+      nto<-ifelse(nto>nmax,nmax,nto)
+      nfrom=nfrom+noffset
+      nto=nto+noffset
+      dfPlotBasin$ER_10yr[i+noffset] <- mean(dfPlotBasin$ER[nfrom:nto],na.rm=T)
+
+      #30 yr avg
+      nfrom<- i-14
+      nto<- i+15
+      nfrom<-ifelse(nfrom<1,1,nfrom)
+      nto<-ifelse(nto>nmax,nmax,nto)
+      nfrom=nfrom+noffset
+      nto=nto+noffset
+      dfPlotBasin$ER_30yr[i+noffset] <- mean(dfPlotBasin$ER[nfrom:nto],na.rm=T)
+    }}}
 
 p3<-ggplot(dfPlotBasin) + 
   theme_minimal() + facet_wrap(~Basin, nrow=2, ncol=5, scales="free",labeller = label_parsed) +
@@ -352,6 +360,35 @@ figw<-24
 fig<-paste0("./figures/Scenarios_basin_",b,".png")
 if(bPrint){ggsave(p4,filename=fig, width = figw, height = figh, units = "cm", dpi=300)}
 }
+bPrint=T
+#----------------------------------------------------
+for(b in c("Bornholm~Basin")){
+  btitle<-paste0("HEAT ",basins[basins2==b])
+  dfplot<-dfPlotBasin %>% filter(Basin == b)
+  p5<-ggplot(dfplot) + 
+    theme_minimal() +
+    geom_point(aes(x=Year,y=ER,colour=Scenario, alpha=0.1),shape=1,show_guide=F)  + 
+    geom_line(aes(x=Year,y=ER_10yr,colour=Scenario)) +
+    geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
+    geom_segment(x=2057,xend=2057,y=0,yend=1,linetype=2,colour="#000000",size=1,alpha=0.3) +
+    #geom_segment(x=2072,xend=2072,y=0,yend=1,linetype=2,colour="#000000",size=1,alpha=0.3) +
+    geom_text(label="2057",x=2037,y=0.1) +
+    #geom_text(label="2072",x=2092,y=0.1) +
+    coord_cartesian(ylim=c(0,2.5)) +
+    scale_color_brewer(palette="Set1") + 
+    labs(y="Eutrophication Ratio", 
+         title=btitle,subtitle="BALTSEM Scenarios")
+  print(p5)
+  
+  figh<-12
+  figw<-24
+  fig<-paste0("./figures/Scenarios_basin_",b,"_1.png")
+  if(bPrint){ggsave(p5,filename=fig, width = figw, height = figh, units = "cm", dpi=300)}
+}
+#----------------------------------------------------
+
+
+
 
 recovery<-dfPlotBasin %>% 
   ungroup() %>%
@@ -361,5 +398,10 @@ recovery<-dfPlotBasin %>%
 recovery<-dfPlotBasin %>% 
   ungroup() %>%
   group_by(Basin,Scenario) %>% summarise() %>%
-  left_join(recovery, by=c("Basin","Scenario"))
+  left_join(recovery, by=c("Basin","Scenario")) %>%
+  ungroup() %>%
+  spread(key=Scenario,value=Recovers) %>% 
+  mutate(Basin=gsub("~"," ",Basin))
+
+saveRDS(recovery,file="results/recovery.rds")
 
