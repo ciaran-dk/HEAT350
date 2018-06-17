@@ -10,6 +10,7 @@
 # BB - Bothnian Bay
 
 rm(list=ls())
+bPrint<-F
 
 library(dplyr)
 library(tidyr)
@@ -173,7 +174,7 @@ for(scen in c("BSAP")){
     print(p)
     
     fig<-paste0("./figures/obs_vs_model_",scen,"_",param,".png")
-    ggsave(p,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+    if(bPrint){ggsave(p,filename=fig, width = figw, height = figh, units = "cm", dpi=300)}
     
   }
 }
@@ -271,9 +272,9 @@ p2
 figh<-12
 figw<-24
 fig<-paste0("./figures/obs_vs_model_Baltic.png")
-ggsave(p1,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+if(bPrint){ggsave(p1,filename=fig, width = figw, height = figh, units = "cm", dpi=300)}
 fig<-paste0("./figures/Scenarios_Baltic.png")
-ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+if(bPrint){ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)}
 
 
 # ---------- plot scenario results for basins --------------------------
@@ -330,7 +331,7 @@ p3
 figh<-12
 figw<-24
 fig<-paste0("./figures/Scenarios_basins.png")
-ggsave(p3,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+if(bPrint){ggsave(p3,filename=fig, width = figw, height = figh, units = "cm", dpi=300)}
 
 for(b in basins2){
   btitle<-paste0("HEAT ",basins[basins2==b])
@@ -349,7 +350,16 @@ print(p4)
 figh<-12
 figw<-24
 fig<-paste0("./figures/Scenarios_basin_",b,".png")
-ggsave(p4,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+if(bPrint){ggsave(p4,filename=fig, width = figw, height = figh, units = "cm", dpi=300)}
 }
 
+recovery<-dfPlotBasin %>% 
+  ungroup() %>%
+  filter(Year > 2000,ER_10yr<=1) %>%
+  group_by(Basin,Scenario) %>% summarise(Recovers=min(Year))
+
+recovery<-dfPlotBasin %>% 
+  ungroup() %>%
+  group_by(Basin,Scenario) %>% summarise() %>%
+  left_join(recovery, by=c("Basin","Scenario"))
 
