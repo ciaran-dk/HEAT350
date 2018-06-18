@@ -62,7 +62,11 @@ targets_obs <- targets_obs %>%
   select(Basin,Parameter,Value,Weight)
 
 targets_model <- targets_model %>%
-  left_join(targets_obs,by=c("Basin","Parameter"))
+  left_join(targets_obs,by=c("Basin","Parameter")) %>%
+  rename(ValueObs=Value)
+
+targets_model %>% mutate(Diff=ifelse(ValueObs==Target,0,1)) %>% filter(Diff==1)
+
 # ----------------------------------------------------
 
 
