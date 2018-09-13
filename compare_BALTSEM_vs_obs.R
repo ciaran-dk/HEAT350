@@ -106,6 +106,7 @@ for(scen in c("BSAP")){
 
 df<-readRDS(file="results/model_vs_obs_variables_regressions.rds") %>% 
   select(StnID,Basin,Year,Variable,Unit,Target,Model,Obs) %>%
+  filter(Year>1900,Year<2020) %>%
   mutate(OK=ifelse(Variable=="O2 debt" & !Basin %in% basins3 ,0,1)) %>%
   mutate(Basin=gsub("~"," ",Basin)) %>%
   arrange(Variable,Basin,Year) %>%
