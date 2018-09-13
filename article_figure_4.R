@@ -1,6 +1,7 @@
 # run HEAT350.R first
 library(tidyverse)
 library(grid)
+library(lattice)
 
 dfPlotBasin <- readRDS("data/HEAT_Results.rds")
 
@@ -12,98 +13,86 @@ EutCat<-function(n){
   return(cat)
 }
 
-#pal<-c("#FF2121","#FAB70E","#FFFF00","#8FFF07","#2C96F6")
-pal<-c("#2C96F6","#8FFF07","#FFFF00","#FAB70E","#FF2121","#FFFFFF")
+pal<-c("#FF2121","#FAB70E","#FFFF00","#8FFF07","#2C96F6","#FFFFFF")
+#pal<-c("#2C96F6","#8FFF07","#FFFF00","#FAB70E","#FF2121","#FFFFFF")
+
+
 
 dfgrid<-dfPlotBasin %>% 
   filter(Parameter=="HEAT") %>%
-  select(StnID,Scenario,Year,ER) %>%
-  mutate(cat=as.integer(EutCat(ER))) %>%
-  mutate(col=pal[cat])
-  
+  select(StnID,Scenario,Year,ER)
 
-dfgrid<-filter(Year<2011,Year>1980)
-  
+dfgrid$cat <- cut(dfgrid$ER,
+                  breaks = c(0,0.5,1,1.5,2,max(dfgrid$ER,na.rm=T)),
+                  labels=c("1","2","3","4","5"))
+dfgrid$cat <- factor(as.character(dfgrid$cat),
+                             levels=rev(levels(dfgrid$cat)))
+
+dfgrid$Year <- factor(dfgrid$Year)
+dfgrid$Year <- factor(dfgrid$Year,levels=rev(levels(dfgrid$Year)))
+
+#dfgrid<-dfgrid %>% filter(Year<2011,Year>1990) 
+dfgrid<-dfgrid %>% mutate(x=NA)
+
 bas<-levels(dfgrid$StnID)
 sc<-levels(dfgrid$Scenario)
 yr<-distinct(dfgrid,Year)
 yr<-yr$Year
 
-ymin<-0.05
-ymax<-0.95
-xmin<-0.05
-xmax<-0.95
-nx<-length(bas)*length(sc)
-ny<-length(yr)
-dy<-(ymax-ymin)/ny
-dx<-(xmax-xmin)/nx
-
-
-
-
-grid.newpage()
-vp <- viewport(width=0.9, height=0.9) #x=0.05, y=0.05, 
-
-#for(is in 1:1){
+xmin<-0
+dx<-1
 
 for(is in 1:length(sc)){
   for(ib in 1:length(bas)){
-    for(iy in 1:length(yr)){
-      x=xmin+dx*(((is-1)*length(bas))+ib-1)
-      y=ymin+dy*(length(yr)-iy)
-      col<-dfgrid %>%
-        filter(Scenario==sc[is],StnID==bas[ib],Year==yr[iy])
-      col <- col$col
-      cat(paste0("x=",x,",y=",y,",col=",col,"\n"))
-      vp <- viewport(x=x, y=y, width=dx, height=dy)
-      pushViewport(vp)
-      grid.rect(gp=gpar(col=NA, fill=col))
-      upViewport()
+      x=xmin+dx*(((is-1)*(0.0+length(bas)))+ib-1)
+      cat(paste0("x=",x,"\n"))
+      dfgrid[dfgrid$Scenario==sc[is]&dfgrid$StnID==bas[ib],"x"]=x
     }
-  }
 }
 
 
+#xlabs<-c(paste0(bas,"_1"),paste0(bas,"_2"),paste0(bas,"_3"),paste0(bas,"_4"))
+xlabs<-c(bas,bas,bas,bas)
+dfgrid$x <- factor(dfgrid$x)
 
 
 
+#define a colour for fonts
+textcol <- "grey40"
 
+figure4<-ggplot(dfgrid, aes(x, Year,fill = cat)) +
+  geom_tile(show.legend=FALSE) +
+  #scale_y_reverse(lim=c(2200,1850)) + 
+  scale_y_discrete(expand=c(0,0),
+                 breaks=c("2200","2150","2100","2050","2000","1950","1900","1850"))+
+  scale_x_discrete(expand=c(0,0),labels=xlabs,position = "top") +
+  scale_fill_manual(values=pal,na.value="grey90")+
+  labs(x="",y="",title="")+
+  theme_grey(base_size=10)+
+  theme(
+    plot.margin = unit(c(0,2,5,0), "pt"),
+    axis.text.x=element_text(size=6,colour=textcol),
+    axis.text.y=element_text(vjust = 0.2,colour=textcol),
+    axis.ticks.y=element_line(size=0.4,colour=textcol),
+    axis.ticks.x=element_blank(),
+    plot.background=element_blank(),
+    panel.border=element_blank())  +
+  geom_vline(aes(xintercept = 9.5),size=0.1,alpha=1) +
+  geom_vline(aes(xintercept = 18.5),size=0.1,alpha=1) +
+  geom_vline(aes(xintercept = 27.5),size=0.1,alpha=1)
+figure4
 
-grid.newpage()
-vp <- viewport(x=0.05, y=0.05, width=0.9, height=0.9)
-pushViewport(vp)
-grid.rect(gp=gpar(lty="dashed"))
-vp2 <- viewport(x=0.05, y=0.05, width=0.9, height=0.9)
-pushViewport(vp2)
-grid.rect()
-lay <- grid.layout(ncol=nx,nrow=ny)
-vplay <- viewport(layout=lay)
-pushViewport(vplay)
-grid.rect()
+figw<-15
+figh<-20
+filefig4<-paste0("./figures_article/figure_4A.png")
+ggsave(figure4,filename=filefig4, width = figw, height = figh, units = "cm", dpi=300)
+filefig4<-paste0("./figures_article/figure_4.png")
+png(filefig4,width = figw, height = figh, units = "cm",res=300)
+figure4
 
-pushViewport(viewport(layout.pos.col=1, layout.pos.row=1))
+labtext<-sc
+lx<-c(0.19,0.42,0.65,0.88)
+ly<-rep(0.97,4)
+grid.text(labtext,x=lx,y=ly,rot=0,gp=gpar(fontsize=8), check=TRUE)
 
-
-
-grid.newpage()
-tree <- vpTree(viewport(width=0.9, height=0.9, name="main"),
-               vpList(vplay))
-pushViewport(tree)
-
-
-nf <- layout(matrix(c(1,1,0,2), 2, 2, byrow = TRUE), respect = TRUE)
-layout.show(nf)
-
-layout.show(lay)
-
-
-
-
-
-
-
-
-
-vp <- viewport(width=.5, height=.5)
-pushViewport(vp)
-grid.rect(gp=gpar(col=NA, fill="grey80"))
+dev.off()

@@ -15,15 +15,16 @@ figure3<-ggplot(filter(dfPlotBasin,Parameter=="HEAT")) +
 
 figure3
 
+figh<-15
+figw<-15
+
 filefig3<-paste0("./figures_article/figure_3A.png")
 ggsave(figure3,filename=filefig3, width = figw, height = figh, units = "cm", dpi=300)
-
-
 filefig3<-paste0("./figures_article/figure_3.png")
 png(filefig3,width = figw, height = figh, units = "cm",res=300)
 figure3
 
-labtext<-c("A","B","C","D","E","F","G","H","I")
+labtext<-c("a","b","c","d","e","f","g","h","i")
 x<-c(0.09,0.41,0.73)
 x<-c(x,x,x)
 y<-c(0.97,0.97,0.97,0.65,0.65,0.65,0.33,0.33,0.33)
