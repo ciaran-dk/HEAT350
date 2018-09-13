@@ -448,6 +448,9 @@ for(s in 1:nscen){
       }else{dfPlotBasin$ER_obs_30yr[i+noffset] <- NA}
     }}}}
 
+
+if(bPrint){saveRDS(dfPlotBasin, file="data/HEAT_Results.rds")}
+
 p3<-ggplot(filter(dfPlotBasin,Parameter=="HEAT")) + 
   theme_minimal() + facet_wrap(~Basin, nrow=2, ncol=5, scales="free",labeller = label_parsed) +
   #geom_point(aes(x=Year,y=ER,colour=Scenario),shape=1, alpha=0.1)  + 

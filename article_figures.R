@@ -1,5 +1,8 @@
-
+# run HEAT350.R first
+library(tidyverse)
 library(grid)
+
+dfPlotBasin <- readRDS("data/HEAT_Results.rds")
 
 figure3<-ggplot(filter(dfPlotBasin,Parameter=="HEAT")) + 
   theme_minimal() + facet_wrap(~Basin, nrow=3, ncol=3, scales="free",labeller = label_parsed) +
@@ -11,6 +14,7 @@ figure3<-ggplot(filter(dfPlotBasin,Parameter=="HEAT")) +
   labs(y="Eutrophication Ratio") 
 
 figure3
+
 filefig3<-paste0("./figures_article/figure_3A.png")
 ggsave(figure3,filename=filefig3, width = figw, height = figh, units = "cm", dpi=300)
 
