@@ -22,7 +22,7 @@ dfgrid<-dfPlotBasin %>%
   mutate(col=pal[cat])
   
 
-dfgrid<-filter(Scenario=="BSAP30",Year<2011,Year>1979)
+dfgrid<-filter(Year<2011,Year>1980)
   
 bas<-levels(dfgrid$StnID)
 sc<-levels(dfgrid$Scenario)
@@ -44,13 +44,13 @@ dx<-(xmax-xmin)/nx
 grid.newpage()
 vp <- viewport(width=0.9, height=0.9) #x=0.05, y=0.05, 
 
-for(is in 1:1){
+#for(is in 1:1){
 
-#for(is in 1:length(sc)){
+for(is in 1:length(sc)){
   for(ib in 1:length(bas)){
     for(iy in 1:length(yr)){
-      x=dx*(((is-1)*length(bas))+ib-1)
-      y=dy*(length(yr)-iy)
+      x=xmin+dx*(((is-1)*length(bas))+ib-1)
+      y=ymin+dy*(length(yr)-iy)
       col<-dfgrid %>%
         filter(Scenario==sc[is],StnID==bas[ib],Year==yr[iy])
       col <- col$col
