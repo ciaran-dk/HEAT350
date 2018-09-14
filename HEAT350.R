@@ -307,9 +307,15 @@ dfBaltic <- dfBasin %>% #
 nmax<- nrow(distinct(ungroup(dfBaltic),Year))
 nscen<- nrow(distinct(ungroup(dfBaltic),Scenario))
 #nmax<-nrow(dfBaltic)
+dfBaltic$model_5yr<-NA
+dfBaltic$obs_5yr<-NA
+dfBaltic$model_10yr<-NA
+dfBaltic$obs_10yr<-NA
+
 for(s in 1:nscen){
 for(i in 1:nmax){
   noffset<-(s-1)*nmax
+  # 5yr avg
   nfrom<- i-2
   nto<- i+2
   nfrom<-ifelse(nfrom<1,1,nfrom)
@@ -322,18 +328,38 @@ for(i in 1:nmax){
   if(sum(is.na(dfBaltic$obs[nfrom:nto]))<3){
     dfBaltic$obs_5yr[i+noffset] <- mean(dfBaltic$obs[nfrom:nto],na.rm=T)
   }else{dfBaltic$obs_5yr[i+noffset] <- NA}
+  
+  #10 yr avg
+  nfrom<- i-4
+  nto<- i+5
+  nfrom<-ifelse(nfrom<1,1,nfrom)
+  nto<-ifelse(nto>nmax,nmax,nto)
+  nfrom=nfrom+noffset
+  nto=nto+noffset
+  if(sum(is.na(dfBaltic$model[nfrom:nto]))<3){
+    dfBaltic$model_10yr[i+noffset] <- mean(dfBaltic$model[nfrom:nto],na.rm=T)
+  }else{dfBaltic$model_10yr[i+noffset] <- NA}
+  if(sum(is.na(dfBaltic$obs[nfrom:nto]))<3){
+    dfBaltic$obs_10yr[i+noffset] <- mean(dfBaltic$obs[nfrom:nto],na.rm=T)
+  }else{dfBaltic$obs_10yr[i+noffset] <- NA}
 }}
 
 dfBaltic<-dfBaltic %>% 
   mutate(obs_5yr=ifelse(is.nan(obs_5yr),NA,obs_5yr),
-         model_5yr=ifelse(is.nan(model_5yr),NA,model_5yr)
+         model_5yr=ifelse(is.nan(model_5yr),NA,model_5yr),
+         obs_10yr=ifelse(is.nan(obs_10yr),NA,obs_10yr),
+         model_10yr=ifelse(is.nan(model_10yr),NA,model_10yr)
          )
 
 dfBaltic5<-dfBaltic %>% select(Scenario,Year,model=model_5yr,obs=obs_5yr) %>%
   gather(key="Param",value="ER_5yr",obs,model)
+dfBaltic10<-dfBaltic %>% select(Scenario,Year,model=model_10yr,obs=obs_10yr) %>%
+  gather(key="Param",value="ER_10yr",obs,model)
 dfBaltic<-dfBaltic %>% select(Scenario,Year,model,obs) %>%
   gather(key="Param",value="ER",obs,model) %>%
-  left_join(dfBaltic5,by=c("Scenario","Year","Param"))
+  left_join(dfBaltic5,by=c("Scenario","Year","Param")) %>%
+  left_join(dfBaltic10,by=c("Scenario","Year","Param"))
+if(bPrint){saveRDS(dfBaltic, file="data/HEAT_Results_Baltic.rds")}
 
 dfplot<-dfBaltic %>% filter(Scenario==scen, Year %in% c(1900:2020))
 p1<-ggplot(dfplot) + 

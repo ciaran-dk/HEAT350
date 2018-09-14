@@ -5,22 +5,19 @@ library(lattice)
 
 dfPlotBasin <- readRDS("data/HEAT_Results.rds")
 
-EutCat<-function(n){
-  cat<-ifelse(n<0.5,1,
-              ifelse(n<1,2,
-                     ifelse(n<1.5,3,
-                            ifelse(n<2,4,5))))
-  return(cat)
-}
-
 pal<-c("#FF2121","#FAB70E","#FFFF00","#8FFF07","#2C96F6","#FFFFFF")
 #pal<-c("#2C96F6","#8FFF07","#FFFF00","#FAB70E","#FF2121","#FFFFFF")
 
-
-
 dfgrid<-dfPlotBasin %>% 
   filter(Parameter=="HEAT") %>%
-  select(StnID,Scenario,Year,ER)
+  select(StnID,Scenario,Year,ER) %>%
+  filter(Year>1899) 
+
+bas<-levels(dfgrid$StnID)
+bas[bas=="GS"]<-"BP"
+dfgrid$StnID <- as.character(dfgrid$StnID)
+dfgrid[dfgrid$StnID=="GS","StnID"]<-"BP"
+dfgrid$StnID<-factor(dfgrid$StnID,levels=bas)
 
 dfgrid$cat <- cut(dfgrid$ER,
                   breaks = c(0,0.5,1,1.5,2,max(dfgrid$ER,na.rm=T)),
@@ -31,11 +28,11 @@ dfgrid$cat <- factor(as.character(dfgrid$cat),
 dfgrid$Year <- factor(dfgrid$Year)
 dfgrid$Year <- factor(dfgrid$Year,levels=rev(levels(dfgrid$Year)))
 
-#dfgrid<-dfgrid %>% filter(Year<2011,Year>1990) 
+#dfgrid<-dfgrid %>% filter(Year<9999,Year>1984) 
 dfgrid<-dfgrid %>% mutate(x=NA)
 
 bas<-levels(dfgrid$StnID)
-sc<-levels(dfgrid$Scenario)
+sc<-rev(levels(dfgrid$Scenario))
 yr<-distinct(dfgrid,Year)
 yr<-yr$Year
 
@@ -64,7 +61,8 @@ figure4<-ggplot(dfgrid, aes(x, Year,fill = cat)) +
   geom_tile(show.legend=FALSE) +
   #scale_y_reverse(lim=c(2200,1850)) + 
   scale_y_discrete(expand=c(0,0),
-                 breaks=c("2200","2150","2100","2050","2000","1950","1900","1850"))+
+                   breaks=c("2200","2150","2100","2050","2000","1950","1900","1850"))+
+                   #breaks=c("2200","2180","2160","2140","2120","2100","2080","2060","2040","2020","2000"))+
   scale_x_discrete(expand=c(0,0),labels=xlabs,position = "top") +
   scale_fill_manual(values=pal,na.value="grey90")+
   labs(x="",y="",title="")+
@@ -82,17 +80,18 @@ figure4<-ggplot(dfgrid, aes(x, Year,fill = cat)) +
   geom_vline(aes(xintercept = 27.5),size=0.1,alpha=1)
 figure4
 
-figw<-15
-figh<-20
+figw<-16
+figh<-22
 filefig4<-paste0("./figures_article/figure_4A.png")
-ggsave(figure4,filename=filefig4, width = figw, height = figh, units = "cm", dpi=300)
+#ggsave(figure4,filename=filefig4, width = figw, height = figh, units = "cm", dpi=300)
 filefig4<-paste0("./figures_article/figure_4.png")
 png(filefig4,width = figw, height = figh, units = "cm",res=300)
 figure4
 
 labtext<-sc
+labtext<-c("1","2","3","4")
 lx<-c(0.19,0.42,0.65,0.88)
 ly<-rep(0.97,4)
-grid.text(labtext,x=lx,y=ly,rot=0,gp=gpar(fontsize=8), check=TRUE)
+grid.text(labtext,x=lx,y=ly,rot=0,gp=gpar(fontsize=15), check=TRUE)
 
 dev.off()
