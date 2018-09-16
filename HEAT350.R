@@ -62,6 +62,7 @@ df<-left_join(df,weights,by=c("Basin"="Basin","Variable"="Variable"))
 
 # Calculate weighted EUT_ratio
 df$EUT_Ratio_wt<-df$EUT_Ratio*df$Weight
+if(bPrint){saveRDS(df, file="data/Parameter_ER_Basin.rds")}
 
 
 # QEdata - Calculate the Eutrophication Sum (EUT_SUM) by Quality Element (Criteria)
@@ -271,6 +272,8 @@ for(scen in c("BSAP")){
     
   }
 }
+if(bPrint){saveRDS(dfBasin, file="data/HEAT_Results_Basin.rds")}
+
 
 # ------------------ end ------------------------
 

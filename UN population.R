@@ -14,9 +14,9 @@ dfpop <- dfpop %>%
   summarise(Population=sum(Population,na.rm=T)) %>%
   mutate(Population=Population/1000)
 
-p<-ggplot(dfpop) + 
+p<-ggplot(dfpop) +
   theme_minimal() +
-  geom_point(aes(x=Year,y=Population),shape=1,show.legend = FALSE)  + 
+  geom_point(aes(x=Year,y=Population),shape=1,show.legend = FALSE)  +
   geom_line(aes(x=Year,y=Population),show.legend = FALSE)
 
 p
