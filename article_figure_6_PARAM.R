@@ -160,7 +160,7 @@ figh<-22
 figw<-15
 filefig6<-paste0("./figures_article/figure_6.png")
 
-png(filefig6,width = figw, height = figh, units = "cm",res=300)
+#png(filefig6,width = figw, height = figh, units = "cm",res=300)
 
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(37,2)))
@@ -181,11 +181,13 @@ grid.text("Year",x=0.5,y=0.02,rot=0,gp=gpar(fontsize=12), check=TRUE)
 dev.off()
 
 
+figh<-22
+figw<-8
 filefig6<-paste0("./figures_article/figure_6B.png")
 png(filefig6,width = figw, height = figh, units = "cm",res=300)
 
 grid.newpage()
-pushViewport(viewport(layout=grid.layout(36,1)))
+pushViewport(viewport(layout=grid.layout(35,1)))
 print(p6a,vp=viewport(layout.pos.row=1:5, layout.pos.col=1))
 print(p6b,vp=viewport(layout.pos.row=6:10, layout.pos.col=1))
 print(p6c,vp=viewport(layout.pos.row=11:15, layout.pos.col=1))
@@ -195,9 +197,10 @@ print(p6f,vp=viewport(layout.pos.row=26:30, layout.pos.col=1))
 print(p6g,vp=viewport(layout.pos.row=31:35, layout.pos.col=1))
 
 x<-rep(0.05,7)
-y<-c(0.99,0.852,0.714,0.576,0.438,0.3,0.162)
-grid.text(labtext,x=x,y=y,rot=0,gp=gpar(fontsize=15), check=TRUE)
-grid.text("Year",x=0.5,y=0.02,rot=0,gp=gpar(fontsize=12), check=TRUE)
+y<-c(0.990,0.848,0.705,0.563,0.420,0.278,0.135)
+#y<-c(0.99,0.852,0.714,0.576,0.438,0.3,0.162)
+grid.text(labtext,x=x,y=y,rot=0,gp=gpar(fontsize=14), check=TRUE)
+#grid.text("Year",x=0.5,y=0.02,rot=0,gp=gpar(fontsize=12), check=TRUE)
 dev.off()
 
 

@@ -19,6 +19,8 @@ library(zoo)
 library(ggplot2)
 library(RColorBrewer)
 
+bPrint<-F
+
 # --------------- Get HEAT 100m years data - we are using the same target values --------------
 folder<-"C:/Data/GitHub/HEAT350/data/100yrs/SAS data apr2015"
 files<-list.files(path=folder)
@@ -94,7 +96,7 @@ df <- df %>% left_join(select(models,Scenario,Basin,Variable,r2,p,text),by=c("Sc
   mutate(r2=ifelse(is.na(r2),"",r2),p=ifelse(is.na(p),"",p),text=ifelse(is.na(text),"",text)) 
 
 
-saveRDS(df,file="results/model_vs_obs_variables_regressions.rds")
+if(bPrint){saveRDS(df,file="results/model_vs_obs_variables_regressions.rds")}
 
 
 # ----- gather obs/model for time series plots  ------------------------
@@ -116,6 +118,6 @@ for(j in 1:n)
   }
 
 
-saveRDS(df,file="results/model_vs_obs_variables.rds")
+if(bPrint){saveRDS(df,file="results/model_vs_obs_variables.rds")}
 
 
