@@ -2,15 +2,16 @@
 library(tidyverse)
 library(grid)
 library(lattice)
-
+library(RColorBrewer)
 
 dfBaltic<-readRDS("data/HEAT_Results_Baltic.rds")
 
-
+scen<-"BSAP"
+scen<-"BSAP30"
 
 df<-dfBaltic %>% 
   ungroup() %>%
-  filter(Scenario=="BSAP") %>%
+  filter(Scenario==scen) %>%
   select(Year,Param,ER) %>%
   spread(key="Param",value="ER") %>%
   filter(!is.na(model),!is.na(obs))
@@ -23,8 +24,12 @@ df$p<-anova(mod)[1,5]
 df <- df %>%
   mutate(p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))),r2=(paste0("R^2*'='~'",round(r2,2),"'")),text=paste0(r2,"\n",p))
 
+figh<-5
+figw<-8
+basefontsize<-7
 figh<-8
 figw<-12
+basefontsize<-8
 
 #notetext<-df$text[1]
 
@@ -39,13 +44,20 @@ p<-ggplot(df,aes(x=obs,y=model))+ sc+
   geom_line(stat='smooth',method="lm",alpha=0.4,formula=y~x,colour="#000000",show.legend=F) + #,linetype=2,size=1
   labs(y="Model",x="Observed") +
   coord_cartesian(ylim=c(0.5,2.0),xlim=c(0.5,2.5)) +
-  theme_minimal(base_size=10) #+ 
+  theme_minimal(base_size=basefontsize)  +
+  theme(axis.text=element_text(colour="#000000"))
 
 p
 
 
 fig<-paste0("./figures_article/figure_Baltic_HEAT_regr.png")
 ggsave(p,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+
+str<-paste0("Scenario:",scen,"\n","y = ",round(mod[["coefficients"]][["obs"]],3),"*x + ",round(mod[["coefficients"]][["(Intercept)"]],3),"\n",
+            "R2 = ",round(summary(mod)[["adj.r.squared"]],3),"\n",
+            "p = ",round(anova(mod)[1,5],4),"\n")
+
+cat(str)
 
 # 
 # 

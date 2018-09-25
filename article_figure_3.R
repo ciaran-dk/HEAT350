@@ -11,7 +11,8 @@ figure3<-ggplot(filter(dfPlotBasin,Parameter=="HEAT")) +
   geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
   coord_cartesian(ylim=c(0,2.5)) +
   scale_color_brewer(palette="Set1") + 
-  labs(y="Eutrophication Ratio") 
+  labs(y="Eutrophication Ratio")   +
+  theme(axis.text=element_text(colour="#000000"))
 
 figure3
 

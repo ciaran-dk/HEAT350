@@ -69,15 +69,15 @@ figure4<-ggplot(dfgrid, aes(x, Year,fill = cat)) +
   theme_grey(base_size=10)+
   theme(
     plot.margin = unit(c(0,2,5,0), "pt"),
-    axis.text.x=element_text(size=6,colour=textcol),
-    axis.text.y=element_text(vjust = 0.2,colour=textcol),
+    axis.text.x=element_text(size=6,colour="#000000"),
+    axis.text.y=element_text(vjust = 0.2,colour="#000000"),
     axis.ticks.y=element_line(size=0.4,colour=textcol),
     axis.ticks.x=element_blank(),
     plot.background=element_blank(),
     panel.border=element_blank())  +
   geom_vline(aes(xintercept = 9.5),size=0.1,alpha=1) +
   geom_vline(aes(xintercept = 18.5),size=0.1,alpha=1) +
-  geom_vline(aes(xintercept = 27.5),size=0.1,alpha=1)
+  geom_vline(aes(xintercept = 27.5),size=0.1,alpha=1)  
 figure4
 
 figw<-16

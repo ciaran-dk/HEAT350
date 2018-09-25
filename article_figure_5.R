@@ -10,7 +10,7 @@ dfplot<-dfBaltic %>% filter(Param=="model")
 
 textcol <- "grey40"
 p2<-ggplot(dfplot) + 
-  theme_minimal() +
+  theme_minimal(base_size=9) +
   #geom_point(aes(x=Year,y=ER,colour=Scenario),shape=1,show.legend = FALSE)  + 
   geom_line(aes(x=Year,y=ER,colour=Scenario,alpha=0.1),show.legend = FALSE) +
   geom_line(aes(x=Year,y=ER_10yr,colour=Scenario),show.legend = FALSE) +
@@ -21,7 +21,8 @@ p2<-ggplot(dfplot) +
        title="") +
   theme(
     axis.ticks=element_line(size=0.4,colour=textcol),
-    axis.line=element_line(size=0.4,colour=textcol))
+    axis.line=element_line(size=0.4,colour=textcol),
+    axis.text=element_text(colour="#000000"))
 p2
 
 

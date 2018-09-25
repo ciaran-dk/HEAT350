@@ -8,6 +8,8 @@ library(grid)
 pal<-c("#FF2121","#8FFF07","#2C96F6","#FFFFFF")
 pal<-c("#FF0000","#00FF00","#2C96F6","#FFFFFF")
 
+titlefontsize<-6
+basefontsize<-7
 
 # ------- Baltic Averages for HEAT score ---------------------------------
 
@@ -17,7 +19,7 @@ dfplot<-dfBaltic %>% filter(Param=="model",Scenario %in% c("BSAP","BAU30"))
 
 textcol <- "grey40"
 p6g<-ggplot(dfplot) + 
-  theme_minimal() +
+  theme_minimal(base_size=basefontsize) +
   geom_line(aes(x=Year,y=ER,colour=Scenario, alpha=0.1),show.legend = FALSE) +
   geom_line(aes(x=Year,y=ER_10yr,colour=Scenario),show.legend = FALSE) +
   geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
@@ -28,7 +30,8 @@ p6g<-ggplot(dfplot) +
   theme(
     axis.ticks=element_line(size=0.4,colour=textcol),
     axis.line=element_line(size=0.4,colour=textcol),
-    title=element_text(size=8),
+    axis.text=element_text(colour="#000000"),
+    title=element_text(size=titlefontsize),
     plot.margin = unit(c(0.05,0.05,0.05,0.05), "cm"))
 p6g
 
@@ -117,7 +120,7 @@ dfplot<-dfplot %>% left_join(par,by="Parameter")
 myplot<-function(df,par,mytitle,ylabel="ER",ylimits=c(0,2.5),textcol="grey40"){
   cat(paste0(mytitle,"\n"))
   p<-ggplot(filter(df,Parameter==par)) + 
-    theme_minimal() +
+    theme_minimal(base_size=basefontsize) +
     geom_line(aes(x=Year,y=Value,colour=Scenario, alpha=0.1),show.legend = FALSE) +
     geom_line(aes(x=Year,y=Value10yr,colour=Scenario),show.legend = FALSE) +
     geom_hline(yintercept=1,linetype=3,colour="#000000",size=1) +
@@ -127,7 +130,8 @@ myplot<-function(df,par,mytitle,ylabel="ER",ylimits=c(0,2.5),textcol="grey40"){
     theme(
       axis.ticks=element_line(size=0.4,colour=textcol),
       axis.line=element_line(size=0.4,colour=textcol),
-      title=element_text(size=8),
+      axis.text=element_text(colour="#000000"),
+      title=element_text(size=titlefontsize),
       plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm"))+
      ggtitle(eval(bquote(.(mytitle))))
     #ggtitle(ParLong)+
@@ -135,14 +139,15 @@ myplot<-function(df,par,mytitle,ylabel="ER",ylimits=c(0,2.5),textcol="grey40"){
 }
 myplotpop<-function(df,par,mytitle,ylabel="millions",ylimits=c(0,80),textcol="grey40"){
   p<-ggplot(filter(df,Parameter==par)) + 
-    theme_minimal() +
+    theme_minimal(base_size=basefontsize) +
     geom_line(aes(x=Year,y=Value,alpha=1),colour="#000000" ,show.legend = FALSE) +
     coord_cartesian(ylim=ylimits,xlim=c(1850,2200)) +
     labs(y=ylabel,x="")+
     theme(
       axis.ticks=element_line(size=0.4,colour=textcol),
       axis.line=element_line(size=0.4,colour=textcol),
-      title=element_text(size=8),
+      axis.text=element_text(colour="#000000"),
+      title=element_text(size=titlefontsize),
       plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm"))+
     ggtitle(eval(bquote(.(mytitle))))
   #ggtitle(ParLong)+
@@ -181,7 +186,7 @@ grid.text("Year",x=0.5,y=0.02,rot=0,gp=gpar(fontsize=12), check=TRUE)
 dev.off()
 
 
-figh<-22
+figh<-21
 figw<-8
 filefig6<-paste0("./figures_article/figure_6B.png")
 png(filefig6,width = figw, height = figh, units = "cm",res=300)
