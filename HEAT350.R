@@ -43,6 +43,11 @@ for(i in 1:length(files)){
 # --------------- import data file for 1850-2200 --------------
 
 df <- readRDS("data/HEAT350.rds")
+
+# remove DIN from Gulf of Riga calculations
+#df[df$Basin=="Gulf of Riga" & df$Parameter=="DIN","Status"]<-NA
+#df <- df %>% filter(!is.na(Status))
+
 df$EUT_Ratio<-ifelse(df$Response=="+",df$Status/df$Target,df$Target/df$Status)
 
 # Create a data frame to match parameter names in 350 yr data to variable names in the target information

@@ -214,27 +214,29 @@ p6f<-myplot(dfplot,"Chla",Summer~Chl~italic(a)~Eutrophication~Ratio)
 p6g<-myplot(dfplot,"Secchi",Summer~Secchi~Depth~Eutrophication~Ratio)
 p6h<-myplot(dfplot,"O2debt",Oxygen~Debt~Eutrophication~Ratio)
 
-figh<-21
-figw<-15
+figh<-16
+figw<-16
 filefig6<-paste0("./figures_article/figure_6.png")
 
-if(F){
+if(T){
 png(filefig6,width = figw, height = figh, units = "cm",res=300)
 
 grid.newpage()
-pushViewport(viewport(layout=grid.layout(37,2)))
-print(p6a,vp=viewport(layout.pos.row=1:9, layout.pos.col=1))
-print(p6b,vp=viewport(layout.pos.row=1:9, layout.pos.col=2))
-print(p6c,vp=viewport(layout.pos.row=10:18, layout.pos.col=1))
-print(p6d,vp=viewport(layout.pos.row=10:18, layout.pos.col=2))
-print(p6e,vp=viewport(layout.pos.row=19:27, layout.pos.col=1))
-print(p6f,vp=viewport(layout.pos.row=19:27, layout.pos.col=2))
-print(p6g,vp=viewport(layout.pos.row=28:36, layout.pos.col=1))
+pushViewport(viewport(layout=grid.layout(9,3)))
+print(p6a,vp=viewport(layout.pos.row=1:3, layout.pos.col=1))
+print(p6b,vp=viewport(layout.pos.row=1:3, layout.pos.col=2))
+print(p6c,vp=viewport(layout.pos.row=1:3, layout.pos.col=3))
+print(p6d,vp=viewport(layout.pos.row=4:6, layout.pos.col=1))
+print(p6e,vp=viewport(layout.pos.row=4:6, layout.pos.col=2))
+print(p6f,vp=viewport(layout.pos.row=4:6, layout.pos.col=3))
+print(p6g,vp=viewport(layout.pos.row=7:9, layout.pos.col=1))
+print(p6h,vp=viewport(layout.pos.row=7:9, layout.pos.col=2))
+print(p6i,vp=viewport(layout.pos.row=7:9, layout.pos.col=3))
 
 
-labtext<-c("a","b","c","d","e","f","g")
-x<-c(0.03,0.53,0.03,0.53,0.03,0.53,0.03)
-y<-c(0.99,0.99,0.75,0.75,0.505,0.505,0.265)
+labtext<-c("a","b","c","d","e","f","g","h","i")
+x<-c(0.08,0.41,0.75,0.08,0.41,0.75,0.08,0.41,0.75)
+y<-c(0.94,0.94,0.94,0.61,0.61,0.61,0.28,0.28,0.28)
 grid.text(labtext,x=x,y=y,rot=0,gp=gpar(fontsize=15), check=TRUE)
 grid.text("Year",x=0.5,y=0.02,rot=0,gp=gpar(fontsize=12), check=TRUE)
 dev.off()
