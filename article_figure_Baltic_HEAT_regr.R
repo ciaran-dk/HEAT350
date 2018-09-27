@@ -3,6 +3,7 @@ library(tidyverse)
 library(grid)
 library(lattice)
 library(RColorBrewer)
+library(graphics)
 
 dfBaltic<-readRDS("data/HEAT_Results_Baltic.rds")
 
@@ -51,27 +52,39 @@ p
 
 
 fig<-paste0("./figures_article/figure_Baltic_HEAT_regr.png")
-ggsave(p,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+#ggsave(p,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
 
 str<-paste0("Scenario:",scen,"\n","y = ",round(mod[["coefficients"]][["obs"]],3),"*x + ",round(mod[["coefficients"]][["(Intercept)"]],3),"\n",
-            "R2 = ",round(summary(mod)[["adj.r.squared"]],3),"\n",
+            "R^2 = ",round(summary(mod)[["adj.r.squared"]],3),"\n",
             "p = ",round(anova(mod)[1,5],4),"\n")
 
 cat(str)
 
-# 
-# 
-# p<-ggplot(df,aes(x=obs,y=model))+
-#   geom_point(alpha=0.4,colour="#000000",show.legend=F)  + #shape=1, 
-#   geom_ribbon(stat='smooth', method = "lm", se=TRUE, alpha=0.1,fill="#000000",show.legend=F) +
-#   geom_line(stat='smooth',method="lm",alpha=0.4,formula=y~x,colour="#000000",show.legend=F) +
-#   labs(y="Model",x="Observed") +
-#   coord_cartesian(ylim=c(0.5,2.0),xlim=c(0.5,2.5)) +
-#   theme_minimal()
-# 
-# p
-# 
-# fig<-paste0("./figures_article/figure_Baltic_HEAT_regr_v2.png")
-# ggsave(p,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
-# 
-# 
+
+
+# ------ plotting with annotation in figure -----------------------
+
+
+str1<-substitute(y == A*x + B, list(A = round(mod[["coefficients"]][["obs"]],3), B=round(mod[["coefficients"]][["(Intercept)"]],3)))
+str2<-substitute(R^2 == A, list(A = round(summary(mod)[["adj.r.squared"]],3)))
+str3<-substitute(p < 0.001)
+
+
+fig<-paste0("./figures_article/figure_Baltic_HEAT_regr_v2.png")
+
+png(fig,width = figw, height = figh, units = "cm",res=300)
+p
+
+
+x1<-c(0.15)
+y1<-c(0.9)
+x2<-c(0.147)
+y2<-c(0.84)
+x3<-c(0.15)
+y3<-c(0.76)
+
+grid.text(just="left",str1,x=x1,y=y1,rot=0,gp=gpar(fontsize=10), check=TRUE)
+grid.text(just="left",str2,x=x2,y=y2,rot=0,gp=gpar(fontsize=10), check=TRUE)
+grid.text(just="left",str3,x=x3,y=y3,rot=0,gp=gpar(fontsize=10), check=TRUE)
+
+dev.off()
