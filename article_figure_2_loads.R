@@ -2,6 +2,9 @@ library(tidyverse)
 library(grid)
 
 
+mypal<-c("#FF0000","#000000","#70AD47","#0070C0")
+
+
 filename<-"data/bärbel/loads/loadsummary_Final_BSAP.csv"
 df1<-read.table(filename, header=TRUE,sep=",", stringsAsFactors=FALSE)
 filename<-"data/bärbel/loads/loadsummary_Final_PLC55.csv"
@@ -38,7 +41,8 @@ fig<-ggplot(df) +
   theme_minimal(base_size=6) + facet_wrap(~Param,ncol=1,labeller=label_parsed,scales="free_y") +
   geom_line(aes(x=Year,y=Load,colour=Scenario),show.legend = FALSE) +
   #coord_cartesian(ylim=c(0,2.5)) +
-  scale_color_brewer(palette="Set1") + 
+  #scale_color_brewer(palette="Set1") + 
+  scale_color_manual(values=mypal) + 
   labs(y="Load [000's tons]") +
   theme(axis.text=element_text(colour="#000000"),
         strip.text = element_blank(),
@@ -46,10 +50,11 @@ fig<-ggplot(df) +
         panel.spacing.y = unit(0, "lines"))
 fig
 
+if(F){ # narrower version
 figh<-5
 figw<-6.8
 
-file<-paste0("./figures_article/figure_loads.png")
+file<-paste0("./figures_article/figure2_loads.png")
 png(file,width = figw, height = figh, units = "cm",res=300)
 fig
 
@@ -63,11 +68,25 @@ y<-c(0.94,0.50)
 grid.text(labtext,x=x,y=y,rot=0,gp=gpar(fontsize=12), check=TRUE)
 
 dev.off()
+}
 
-
+# version without labels
 figh<-5
 figw<-8
-file<-paste0("./figures_article/figure_loads_v2.png")
+file<-paste0("./figures_article/figure2_loads_no_labels.png")
+png(file,width = figw, height = figh, units = "cm",res=300)
+fig
+
+labtext<-c("N Total","P Total")
+x<-c(0.19,0.19)
+y<-c(0.75,0.31)
+grid.text(labtext,x=x,y=y,rot=0,gp=gpar(fontsize=7), check=TRUE)
+
+dev.off()
+
+# version with labels a,b
+
+file<-paste0("./figures_article/figure2_loads.png")
 png(file,width = figw, height = figh, units = "cm",res=300)
 fig
 

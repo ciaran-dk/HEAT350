@@ -8,6 +8,9 @@ library(grid)
 pal<-c("#FF2121","#8FFF07","#2C96F6","#FFFFFF")
 pal<-c("#FF0000","#00FF00","#2C96F6","#FFFFFF")
 
+pal<-c("#FF0000","#0070C0")
+
+
 titlefontsize<-6
 basefontsize<-7
 
@@ -50,7 +53,7 @@ dfBaltic<-readRDS("data/HEAT_Results_Baltic.rds")
 dfplot<-dfBaltic %>% filter(Param=="model",Scenario %in% c("BSAP","BAU30"))
 
 textcol <- "grey40"
-p6i<-ggplot(dfplot) + 
+pi<-ggplot(dfplot) + 
   theme_minimal(base_size=basefontsize) +
   geom_line(aes(x=Year,y=ER,colour=Scenario, alpha=0.1),show.legend = FALSE) +
   geom_line(aes(x=Year,y=ER_10yr,colour=Scenario),show.legend = FALSE) +
@@ -65,7 +68,7 @@ p6i<-ggplot(dfplot) +
     axis.text=element_text(colour="#000000"),
     title=element_text(size=titlefontsize),
     plot.margin = unit(c(0.05,0.05,0.05,0.05), "cm"))
-p6i
+pi
 
 
 # ------- Baltic Averages for parameters ---------------------------------
@@ -205,33 +208,33 @@ myplotload<-function(df,par,mytitle,ylabel="[000's tons]",ylimits=c(0,1600),text
 
 
 
-p6a<-myplotpop(dfplot,"Pop","Population")
-p6b<-myplotload(dfload,"Ntot","N Load")
-p6c<-myplotload(dfload,"Ptot","P Load",ylimits=c(0,80))
-p6d<-myplot(dfplot,"DIN",Winter~DIN~Eutrophication~Ratio)
-p6e<-myplot(dfplot,"PO4",Winter~DIP~Eutrophication~Ratio)
-p6f<-myplot(dfplot,"Chla",Summer~Chl~italic(a)~Eutrophication~Ratio)
-p6g<-myplot(dfplot,"Secchi",Summer~Secchi~Depth~Eutrophication~Ratio)
-p6h<-myplot(dfplot,"O2debt",Oxygen~Debt~Eutrophication~Ratio)
+pa<-myplotpop(dfplot,"Pop","Population")
+pb<-myplotload(dfload,"Ntot","N Load")
+pc<-myplotload(dfload,"Ptot","P Load",ylimits=c(0,80))
+pd<-myplot(dfplot,"DIN",Winter~DIN~Eutrophication~Ratio)
+pe<-myplot(dfplot,"PO4",Winter~DIP~Eutrophication~Ratio)
+pf<-myplot(dfplot,"Chla",Summer~Chl~italic(a)~Eutrophication~Ratio)
+pg<-myplot(dfplot,"Secchi",Summer~Secchi~Depth~Eutrophication~Ratio)
+ph<-myplot(dfplot,"O2debt",Oxygen~Debt~Eutrophication~Ratio)
 
 figh<-16
 figw<-16
-filefig6<-paste0("./figures_article/figure_6.png")
+file<-paste0("./figures_article/figure_7_3x3.png")
 
-if(T){
-png(filefig6,width = figw, height = figh, units = "cm",res=300)
+if(F){ #save 3x3 version
+png(file,width = figw, height = figh, units = "cm",res=300)
 
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(9,3)))
-print(p6a,vp=viewport(layout.pos.row=1:3, layout.pos.col=1))
-print(p6b,vp=viewport(layout.pos.row=1:3, layout.pos.col=2))
-print(p6c,vp=viewport(layout.pos.row=1:3, layout.pos.col=3))
-print(p6d,vp=viewport(layout.pos.row=4:6, layout.pos.col=1))
-print(p6e,vp=viewport(layout.pos.row=4:6, layout.pos.col=2))
-print(p6f,vp=viewport(layout.pos.row=4:6, layout.pos.col=3))
-print(p6g,vp=viewport(layout.pos.row=7:9, layout.pos.col=1))
-print(p6h,vp=viewport(layout.pos.row=7:9, layout.pos.col=2))
-print(p6i,vp=viewport(layout.pos.row=7:9, layout.pos.col=3))
+print(pa,vp=viewport(layout.pos.row=1:3, layout.pos.col=1))
+print(pb,vp=viewport(layout.pos.row=1:3, layout.pos.col=2))
+print(pc,vp=viewport(layout.pos.row=1:3, layout.pos.col=3))
+print(pd,vp=viewport(layout.pos.row=4:6, layout.pos.col=1))
+print(pe,vp=viewport(layout.pos.row=4:6, layout.pos.col=2))
+print(pf,vp=viewport(layout.pos.row=4:6, layout.pos.col=3))
+print(pg,vp=viewport(layout.pos.row=7:9, layout.pos.col=1))
+print(ph,vp=viewport(layout.pos.row=7:9, layout.pos.col=2))
+print(pi,vp=viewport(layout.pos.row=7:9, layout.pos.col=3))
 
 
 labtext<-c("a","b","c","d","e","f","g","h","i")
@@ -244,20 +247,20 @@ dev.off()
 
 figh<-21
 figw<-8
-filefig6<-paste0("./figures_article/figure_6B.png")
-png(filefig6,width = figw, height = figh, units = "cm",res=300)
+file<-paste0("./figures_article/figure_7.png")
+png(file,width = figw, height = figh, units = "cm",res=300)
 
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(45,1)))
-print(p6a,vp=viewport(layout.pos.row=1:5, layout.pos.col=1))
-print(p6b,vp=viewport(layout.pos.row=6:10, layout.pos.col=1))
-print(p6c,vp=viewport(layout.pos.row=11:15, layout.pos.col=1))
-print(p6d,vp=viewport(layout.pos.row=16:20, layout.pos.col=1))
-print(p6e,vp=viewport(layout.pos.row=21:25, layout.pos.col=1))
-print(p6f,vp=viewport(layout.pos.row=26:30, layout.pos.col=1))
-print(p6g,vp=viewport(layout.pos.row=31:35, layout.pos.col=1))
-print(p6h,vp=viewport(layout.pos.row=36:40, layout.pos.col=1))
-print(p6i,vp=viewport(layout.pos.row=41:45, layout.pos.col=1))
+print(pa,vp=viewport(layout.pos.row=1:5, layout.pos.col=1))
+print(pb,vp=viewport(layout.pos.row=6:10, layout.pos.col=1))
+print(pc,vp=viewport(layout.pos.row=11:15, layout.pos.col=1))
+print(pd,vp=viewport(layout.pos.row=16:20, layout.pos.col=1))
+print(pe,vp=viewport(layout.pos.row=21:25, layout.pos.col=1))
+print(pf,vp=viewport(layout.pos.row=26:30, layout.pos.col=1))
+print(pg,vp=viewport(layout.pos.row=31:35, layout.pos.col=1))
+print(ph,vp=viewport(layout.pos.row=36:40, layout.pos.col=1))
+print(pi,vp=viewport(layout.pos.row=41:45, layout.pos.col=1))
 
 x<-rep(0.05,7)
 labtext<-c("a","b","c","d","e","f","g","h","i")
@@ -268,5 +271,22 @@ grid.text(labtext,x=x,y=y,rot=0,gp=gpar(fontsize=14), check=TRUE)
 #grid.text("Year",x=0.5,y=0.02,rot=0,gp=gpar(fontsize=12), check=TRUE)
 dev.off()
 
+
+# version without labels
+file<-paste0("./figures_article/figure_7_nolabels.png")
+png(file,width = figw, height = figh, units = "cm",res=300)
+
+grid.newpage()
+pushViewport(viewport(layout=grid.layout(45,1)))
+print(pa,vp=viewport(layout.pos.row=1:5, layout.pos.col=1))
+print(pb,vp=viewport(layout.pos.row=6:10, layout.pos.col=1))
+print(pc,vp=viewport(layout.pos.row=11:15, layout.pos.col=1))
+print(pd,vp=viewport(layout.pos.row=16:20, layout.pos.col=1))
+print(pe,vp=viewport(layout.pos.row=21:25, layout.pos.col=1))
+print(pf,vp=viewport(layout.pos.row=26:30, layout.pos.col=1))
+print(pg,vp=viewport(layout.pos.row=31:35, layout.pos.col=1))
+print(ph,vp=viewport(layout.pos.row=36:40, layout.pos.col=1))
+print(pi,vp=viewport(layout.pos.row=41:45, layout.pos.col=1))
+dev.off()
 
 

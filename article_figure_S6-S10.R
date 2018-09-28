@@ -25,7 +25,7 @@ bPrint<-F
 
 df<-readRDS(file="results/model_vs_obs_variables.rds")
 
-scen<-"BSAP"
+scen<-"BSAP30"
 df<-df %>% filter(Scenario==scen) %>% select(-Scenario)
 
 basins<-c("Kattegat","Danish Straits","Arkona Basin","Bornholm Basin","Baltic Proper","Gulf of Riga","Gulf of Finland","Bothnian Sea","Bothnian Bay")
@@ -33,6 +33,9 @@ basins2<-gsub(" ","~",basins)
 basins3<-c("Bornholm~Basin","Baltic~Proper","Gulf~of~Finland")
 vars<-c("din_winter","dip_winter","chl_summer","secchi_summer","O2debt")
 vars2<-c("Winter DIN","Winter DIP","Summer Chl a","Summer Secchi","O2 debt")
+
+pal<-c("#70AD47","#000000")
+
 
 # --------------------- Time series plots --------------------- 
 iv=5
@@ -58,8 +61,9 @@ for(v in vars2){
     facet_wrap(~Basin, nrow=3, ncol=3, scales="free",labeller = label_parsed) +
     geom_point(aes(x=Year,y=Value,colour=Param, alpha=0.1),shape=1,show.legend=F)  + 
     geom_line(aes(x=Year,y=Value_5yr,colour=Param),show.legend=F) +
-    geom_line(aes(x=Year,y=Target),linetype=2,colour="#ff0000",size=1,alpha=1,show.legend=F) +
-    scale_color_brewer(palette="Dark2",name="") + 
+    geom_line(aes(x=Year,y=Target),linetype=3,colour="#000000",show.legend=F) +
+    #scale_color_brewer(palette="Dark2",name="") + 
+    scale_color_manual(values=pal) + 
     #labs(y=ylab,title=desc,subtitle=paste0("Timeseries BALTSEM [",scen,"] vs. observations")) +
     labs(y=ylab) +
     theme(legend.position = c(0.9, 0.1))

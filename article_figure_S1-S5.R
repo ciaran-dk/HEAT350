@@ -2,6 +2,7 @@
 library(tidyverse)
 library(grid)
 
+mypal<-c("#FF0000","#000000","#70AD47","#0070C0")
 
 df<-readRDS(file="data/Parameter_ER_Basin.rds")
 Basins<-c("Kattegat","Danish Straits","Arkona Basin","Bornholm Basin","Baltic Proper",
@@ -32,9 +33,15 @@ if(params[ip]=="O2debt"){
     geom_line(aes(x=Year,y=Status,colour=Scenario, alpha=1),show.legend = FALSE) +
     geom_line(aes(x=Year,y=Target),colour="#000000",linetype=3,show.legend = FALSE) +
     #coord_cartesian(ylim=c(0,2.5)) +
-    scale_color_brewer(palette="Set1") + 
+    #scale_color_brewer(palette="Set1") + 
+    scale_color_manual(values=mypal) + 
     labs(y=Unit)
   p
+  
+  figfile<-paste0("./figures_article/figure_S",ip,"_",params[ip],"_no_labels.png")
+  png(figfile,width = figw, height = figh, units = "cm",res=300)
+  print(p)
+  dev.off()    
   
   figfile<-paste0("./figures_article/figure_S",ip,"_",params[ip],".png")
   png(figfile,width = figw, height = figh, units = "cm",res=300)
@@ -55,10 +62,16 @@ if(params[ip]=="O2debt"){
     geom_line(aes(x=Year,y=Status,colour=Scenario, alpha=1),show.legend = FALSE) +
     geom_line(aes(x=Year,y=Target),colour="#000000",linetype=3,show.legend = FALSE) +
     #coord_cartesian(ylim=c(0,2.5)) +
-    scale_color_brewer(palette="Set1") + 
+    #scale_color_brewer(palette="Set1") + 
+    scale_color_manual(values=mypal) + 
     labs(y=Unit)
   p
 
+  figfile<-paste0("./figures_article/figure_S",ip,"_",params[ip],"_no_labels.png")
+  png(figfile,width = figw, height = figh, units = "cm",res=300)
+  print(p)
+  dev.off()
+  
   figfile<-paste0("./figures_article/figure_S",ip,"_",params[ip],".png")
   png(figfile,width = figw, height = figh, units = "cm",res=300)
   print(p)
