@@ -247,8 +247,8 @@ dev.off()
 
 figh<-21
 figw<-8
-file<-paste0("./figures_article/figure_7.png")
-png(file,width = figw, height = figh, units = "cm",res=300)
+file<-paste0("./figures_article/figure_7.tif")
+tiff(file,width = figw, height = figh, units = "cm",res=300)
 
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(45,1)))
@@ -273,8 +273,8 @@ dev.off()
 
 
 # version without labels
-file<-paste0("./figures_article/figure_7_nolabels.png")
-png(file,width = figw, height = figh, units = "cm",res=300)
+file<-paste0("./figures_article/figure_7_nolabels.tif")
+tiff(file,width = figw, height = figh, units = "cm",res=300)
 
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(45,1)))

@@ -81,11 +81,11 @@ fig<-ggplot(dfgrid, aes(x, Year,fill = cat)) +
 fig
 
 figw<-16
-figh<-22
+figh<-21
 file<-paste0("./figures_article/figure_5A.png")
 #ggsave(fig,filename=file, width = figw, height = figh, units = "cm", dpi=300)
-file<-paste0("./figures_article/figure_5.png")
-png(file,width = figw, height = figh, units = "cm",res=300)
+file<-paste0("./figures_article/figure_5.tif")
+tiff(file,width = figw, height = figh, units = "cm",res=300)
 fig
 
 labtext<-sc

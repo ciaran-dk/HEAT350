@@ -70,9 +70,9 @@ str2<-substitute(R^2 == A, list(A = round(summary(mod)[["adj.r.squared"]],3)))
 str3<-substitute(p < 0.001)
 
 
-fig<-paste0("./figures_article/figure_3.png")
+fig<-paste0("./figures_article/figure_3.tif")
 
-png(fig,width = figw, height = figh, units = "cm",res=300)
+tiff(fig,width = figw, height = figh, units = "cm",res=300)
 p
 
 

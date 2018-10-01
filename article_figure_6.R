@@ -83,7 +83,11 @@ figh<-8
 figw<-8
 
 fig<-paste0("./figures_article/figure_6.png")
-ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
+#ggsave(p2,filename=fig, width = figw, height = figh, units = "cm", dpi=300)
 
+file<-paste0("./figures_article/figure_6.tif")
+tiff(file,width = figw, height = figh, units = "cm",res=300)
+p2
+dev.off()
 
 

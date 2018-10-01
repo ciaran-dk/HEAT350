@@ -24,8 +24,8 @@ figw<-15
 
 file<-paste0("./figures_article/figure_4_without_labels.png")
 ggsave(fig,filename=file, width = figw, height = figh, units = "cm", dpi=300)
-file<-paste0("./figures_article/figure_4.png")
-png(file,width = figw, height = figh, units = "cm",res=300)
+file<-paste0("./figures_article/figure_4.tif")
+tiff(file,width = figw, height = figh, units = "cm",res=300)
 fig
 
 labtext<-c("a","b","c","d","e","f","g","h","i")
